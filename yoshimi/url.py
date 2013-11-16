@@ -37,13 +37,15 @@ def generate_slug(obj, parent=None):
     parameter is set the location on `obj` which is the child location of the
     `parent` will be used as the starting point for generating the slug. This
     is useful when when you want to generate a slug for a specifc location but
-    you only have the ContentType. E.g::
+    you only have the :class:`ContentType`. E.g::
 
         >>> children = folder.main_location.children()
         >>> for c in children:
         >>>     print generate_slug(c, parent=folder.main_location)
 
-    :param obj: :class:`ContentType` or :class:`Location`s-ish objects.
+    :param obj:
+    :type obj: :class:`yoshimi.content.ContentType` or
+               :class:`yoshimi.content.Location`
     :return string: Generated slug
     """
     if not hasattr(obj, 'paths'):
@@ -58,13 +60,15 @@ def generate_slug(obj, parent=None):
 def url(request, location, *elements, route='.', parent=None, **query):
     """Generates a url for a given location and route name
 
-    This function is just a light wrapper around pyramid.request.route_path
+    This function is just a light wrapper around
+    :meth:`pyramid.request.Request.route_path`
 
-    :param Location location: A location
-    :param string route: If not provided the `request.matched_route.name` will
-                         be used.
-    :param Dict query: Dict of url query parameters
-    :return string: Url to location
+    :param yoshimi.content.Location location: A location
+    :param str route: If not provided the
+                      :attr:`pyramid.request.Request.matched_route.name` will
+                      be used.
+    :param dict query: Dict of url query parameters
+    :return str: Url to location
     """
     if route == '.':
         route = request.matched_route.name
