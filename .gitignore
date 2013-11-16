@@ -8,3 +8,4 @@ venv/
 .sass-cache/
 *-min.css
 .ropeproject/
+docs/_build
