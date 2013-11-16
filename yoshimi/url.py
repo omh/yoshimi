@@ -30,18 +30,21 @@ def extract_slug_from(url_parts, separator='-'):
 
 
 def generate_slug(obj, parent=None):
-    """Generates the slug for a content type or :class:`Location`.
+    """Generates the slug for a content type or :class:`yoshimi.content.Location`.
 
     If you pass in a content type the main location will be used unless you
-    also pass in a :class:`Location` as the `parent` parameter. If `parent`
-    parameter is set the location on `obj` which is the child location of the
-    `parent` will be used as the starting point for generating the slug. This
-    is useful when when you want to generate a slug for a specifc location but
-    you only have the :class:`ContentType`. E.g::
+    also pass in a :class:`yoshimi.content.Location` as the `parent` parameter.
+    If `parent` parameter is set the location on `obj` which is the child
+    location of the `parent` will be used as the starting point for generating
+    the slug. This is useful when when you want to generate a slug for
+    a specifc location but you only have the
+    :class:`yoshimi.content.ContentType`. E.g:
 
-        >>> children = folder.main_location.children()
-        >>> for c in children:
-        >>>     print generate_slug(c, parent=folder.main_location)
+    .. code-block:: python
+
+        children = folder.main_location.children()
+        for c in children:
+            print generate_slug(c, parent=folder.main_location)
 
     :param obj:
     :type obj: :class:`yoshimi.content.ContentType` or

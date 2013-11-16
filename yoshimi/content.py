@@ -55,13 +55,17 @@ class Location(Base):
     """Represents the location of a Content object in the content tree
     structure.
 
-    Creating a root location::
+    Creating a root location:
 
-        >>> content.locations[] = Location()
+    .. code-block:: python
 
-    Moving a location::
+        content.locations[] = Location()
 
-        >>> content.main_location.move(root.main_location)
+    Moving a location:
+
+    .. code-block:: python
+
+        content.main_location.move(root.main_location)
     """
     id = sa.Column(sa.Integer, primary_key=True)
     is_main = sa.Column(sa.Boolean, default=False, nullable=False)
@@ -309,7 +313,9 @@ class Content(Base):
     A resource can have multiple locations in the tree and it will always have
     at least one.
 
-    Example usage::
+    Example usage:
+
+    .. code-block:: python
 
         root = Content(name='Name here', slug='name-here')
         child = Content(root.main_location)
