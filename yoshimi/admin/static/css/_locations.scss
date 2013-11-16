@@ -1,0 +1,27 @@
+.location-widget {
+    padding: 0;
+    margin: 0;
+    margin-bottom: 5px;
+    background-color: transparent;
+
+    input {
+        position: relative;
+        top: -4px;
+    }
+}
+
+.locations {
+    background-color: #f8f8f8;
+    border-top: 1px solid #ececec;
+    margin-left: -9px;
+    padding: 0px 10px 10px 10px;
+    margin-right: -9px;
+    margin-bottom: -9px;
+
+}
+
+.location-widget > li:first-child {
+    margin-right: 8px;
+}
+
+

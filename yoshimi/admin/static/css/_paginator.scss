@@ -1,0 +1,26 @@
+.paginator-attached {
+    margin-top: -9px;
+    margin-bottom: 0;
+
+    .paginator-item {
+        padding: 6px 12px;
+        border: 1px solid $border-color;
+        border-top: 0;
+        margin-left: -1px;
+    }
+    li:first-child .paginator-item {
+        border-bottom-left-radius: 4px;
+    }
+    li:last-child .paginator-item {
+        border-bottom-right-radius: 4px;
+    }
+    a:hover {
+        cursor: pointer;
+        background-color: $subtle-bg-color;
+        color: $inverted-fg-color;
+    }
+}
+
+.paginator-right {
+    text-align: right;
+}

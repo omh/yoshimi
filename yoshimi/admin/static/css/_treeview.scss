@@ -1,0 +1,7 @@
+ul.jqtree-tree li.jqtree-closed > ul.jqtree_common {
+    display: none;
+}
+ul.jqtree-tree li.jqtree_common {
+    clear: both;
+    list-style-type: none;
+}

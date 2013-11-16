@@ -1,0 +1,62 @@
+.pure-form {
+    input, textarea, label {
+        font-size: 100% !important;
+    }
+    legend {
+        margin-bottom: $padding/2;
+    }
+}
+
+.alert-validation {
+    font-size: 90%;
+    border-left: 5px solid #dFb5b4;
+    background-color: #fcf2f2;
+    padding: $padding/2;
+    margin-bottom: $padding/2;
+
+    .alert-header {
+        color: #b94a48;
+    }
+
+    label {
+        display: inline;
+        font-size: 100%;
+        font-weight: bold;
+        border-bottom: 1px solid $border-color;
+
+        &:hover {
+            cursor: pointer;
+        }
+    }
+}
+
+.control-group {
+    margin-bottom: $padding/2;
+    label {
+        display: inline;
+    }
+    .help-inline {
+        color: $subtle-text-color;
+        font-size: 80%;
+        float: right;
+    }
+}
+
+.control-group.error {
+    color: #b94a48;
+    input, textarea {
+        border: 1px solid #b94a48;
+        border-color: #b94a48;
+    }
+}
+
+.content-name {
+    display: inline-block;
+}
+
+.slug-preview {
+    font-size: 15px;
+    font-family: $main-font;
+    white-space: nowrap;
+}
+

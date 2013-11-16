@@ -1,0 +1,60 @@
+$top-bar-height: 00px;
+$nav-width: 300px;
+$nav-medium-width: 200px;
+$padding: 30px;
+
+#layout {
+    padding-left: $nav-width;
+    position: relative;
+}
+
+#nav {
+    position: fixed;
+    top: $top-bar-height;
+    bottom: 0;
+    width: $nav-width;
+    margin-left: -($nav-width);
+}
+
+.controls {
+    float: right;
+}
+
+@media (max-width: 867px) {
+    #layout {
+        padding-left: $nav-medium-width;
+    }
+
+    #nav {
+        width: $nav-medium-width;
+        margin-left: -($nav-medium-width);
+    }
+}
+
+@media (max-width: 480px) {
+    #layout, #nav, #main {
+        position: static;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        top: auto;
+    }
+    #nav {
+        width: 100%;
+        height: 40px;
+        position: relative;
+        overflow: auto;
+    }
+    #nav .nav-menu-button {
+        display: block;
+        top: 0.5em;
+        right: 0.5em;
+        position: absolute;
+    }
+    #nav.active {
+        height: 80%;
+    }
+    .nav-inner {
+        display: none;
+    }
+}

@@ -1,0 +1,41 @@
+.pure-button-success,
+.pure-button-error,
+.pure-button-warning,
+.pure-button-secondary {
+    color: white;
+}
+.pure-button-primary:hover,
+.pure-button-success:hover,
+.pure-button-error:hover,
+.pure-button-warning:hover,
+.pure-button-secondary:hover {
+    color: white;
+}
+
+.pure-button-success {
+    background: rgb(28, 184, 65); /* this is a green */
+}
+
+.pure-button-error {
+    background: rgb(202, 60, 60); /* this is a maroon */
+}
+
+.pure-button-warning {
+    background: rgb(223, 117, 20); /* this is an orange */
+}
+
+.pure-button-secondary {
+    background: rgb(66, 184, 221); /* this is a light blue */
+}
+
+.pure-button-cancel,
+.pure-form button.pure-button-cancel {
+    background: none;
+    font-size: 90%;
+    text-decoration: underline;
+    font-weight: normal;
+}
+.pure-button-cancel:hover {
+    background: none;
+    text-decoration: underline;
+}

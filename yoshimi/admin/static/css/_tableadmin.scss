@@ -1,0 +1,18 @@
+.table-admin {
+    width: 100%;
+    margin-bottom: $padding/2;
+
+    th, td {
+        text-align: left;
+        padding: 8px 4px 8px 0px;
+        border-bottom: 1px solid $border-color;
+    }
+}
+
+.table-admin-no-border {
+    border: none !important;
+}
+
+.table-admin-right {
+    text-align: right !important;
+}
