@@ -262,8 +262,6 @@ class Location(Base):
     def _del_non_interconnected_paths(self, session):
         """Deletes paths that are not interconnected."""
         if session.bind.dialect.name == "mysql":
-            #session.query(Path).delete()
-            #return
             r = session.execute("""DELETE P FROM path as p
                 JOIN path AS d ON p.descendant = d.descendant
                 LEFT JOIN path as X
