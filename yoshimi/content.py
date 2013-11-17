@@ -38,7 +38,6 @@ class Path(Base):
         foreign_keys=[ancestor],
         backref=orm.backref(
             'ancestor_paths',
-            lazy='dynamic',
         ),
     )
     descendant_location = orm.relationship(
@@ -46,14 +45,13 @@ class Path(Base):
         foreign_keys=[descendant],
         backref=orm.backref(
             'descendant_paths',
-            lazy='dynamic',
         ),
     )
 
 
 class Location(Base):
-    """Represents the location of a Content object in the content tree
-    structure.
+    """Represents the location of a :class:`~.Content` object in the content
+    tree structure.
 
     Creating a root location:
 
@@ -76,15 +74,15 @@ class Location(Base):
     paths = orm.relationship(
         Path,
         foreign_keys=[Path.descendant],
+#        lazy='joined',
         order_by=Path.length.desc(),
     )
 
     def __init__(self, parent=None, **kwargs):
-        """Creates a new Location
-
-        :param Location parent: The parent for this Location. If set to None
-                                then the location will be created as a root
-                                location.
+        """
+        :param parent: The parent for this Location. If None then the location
+         will be created as a root location.
+        :type parent: :class:`.Location`
         """
         super(Location, self).__init__(**kwargs)
 
@@ -129,7 +127,8 @@ class Location(Base):
         of locations::
 
             [root, child3, child4]
-        :returns sqlalchemy.orm.query.Query:
+
+        :rtype: :class:`sqlalchemy.orm.query.Query`
         """
         return cls.query.join(
             Path, Path.ancestor == Location.id
@@ -149,7 +148,7 @@ class Location(Base):
         If the location is a top-level location (i.e no parent) then None
         is returned.
 
-        :returns Location: A Location or None
+        :rtype: A :class:`.Location` or None
         """
         if hasattr(self, '_parent') and getattr(self, '_parent') is not None:
             return self._parent
@@ -184,33 +183,48 @@ class Location(Base):
     def ancestors(self):
         return self.ancestors_by_id(self.id)
 
-    def children(self, *entities, **options):
-        """Fetch a list of children
+    def children(self, *content_types, depth=1):
+        """Fetches a list of children returning a query that can be filtered
+        further if needed.
 
-        :param entities: A list of entities to fetch. If you don't specify
-                         any all entities will be fetched. This can cause N+1
-                         amount of SQL queries. Always specify the which
-                         entities to fetch if you are able to.
-        :returns sqlalchemy.orm.query.Query:
+        :param tuple content_types: Content Types to fetch. If you don't
+         specify any all content types will be fetched.
+        :param int depth: How many levels down to fetch children. Defaults to 1.
+        :rtype: :class:`sqlalchemy.orm.query.Query`
+        :return: Once query is triggered it will return a list of
+         :class:`.Location` objects.
         """
-        if not 'depth' in options:
-            options['depth'] = 1
+        type_alias = orm.with_polymorphic(Content, content_types, flat=True)
 
-        if len(entities) >= 2:
-            query = get_query(self, orm.with_polymorphic(Content, entities))
-        elif len(entities) == 1:
-            query = get_query(self, *entities)
-        else:
-            query = get_query(self, Content)
-
-        return query.join(Location).join(
+        query = get_query(self, Location)
+        query = query.join(
             Path, Path.descendant == Location.id
+        ).join(
+            Content, Content.id == Location.content_id
+        ).join(
+            Location.content.of_type(type_alias)
         ).filter(
             Path.ancestor == self.id,
-            Path.length.between(1, options['depth'])
+            Path.length.between(1, depth)
         ).options(
-            orm.joinedload_all('locations.paths')
+            #orm.contains_eager('content'),
+            #orm.contains_eager('paths'),
+            #orm.contains_eager(Location.content.of_type(type_alias))
         )
+
+        if len(content_types) == 1:
+            for entity in content_types:
+                query = query.filter(
+                    entity.id == Content.id
+                )
+
+        types = [e.__mapper_args__['polymorphic_identity'] for e in content_types]
+        if types:
+            query = query.filter(
+                Content.type.in_(types)
+            )
+
+        return query
 
     def move(self, new_parent):
         """Moves this location to under new location
@@ -343,7 +357,6 @@ class Content(Base):
     )
     locations = orm.relationship(
         'Location',
-        lazy='joined',
         backref='content',
     )
 
@@ -369,8 +382,8 @@ class Content(Base):
     def main_location(self):
         """Fetches the main location
 
-        :throws sqlalchemy.orm.exc.NoResultFound: If no main location is found
-        :rtype: Location
+        :raises sqlalchemy.orm.exc.NoResultFound: If no main location is found
+        :rtype: :class:`.Location`
         """
         for l in self.locations:
             if l.is_main:
@@ -386,7 +399,8 @@ class Content(Base):
         it will be added as a location. The previous main location will be
         changed to a non main location.
 
-        :param new_main_location Location: Location to set as the main
+        :param new_main_location: Location to set as the main
+        :type new_main_location: :class:`.Location`
         """
         new_main_location.is_main = True
         self._main_location = new_main_location

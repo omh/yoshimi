@@ -1,8 +1,9 @@
+import sqlalchemy as sa
 from yoshimi.content import ContentType, Content
 
 
 class Article(ContentType, Content):
-    pass
+    title = sa.Column(sa.String(250))
 
 
 class Folder(ContentType, Content):

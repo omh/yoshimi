@@ -59,23 +59,23 @@ class TestContentDatabase(test.DatabaseTestCase):
         self.s.add(root)
         self.s.commit()
 
-        children = root.children().order_by(Content.id).all()
+        children = root.children().order_by(Location.id).all()
 
         self.assertEquals(len(children), 2)
-        self.assertEquals(children[0], child1)
-        self.assertEquals(children[1], child2)
+        self.assertEquals(children[0], child1.main_location)
+        self.assertEquals(children[1], child2.main_location)
 
     def test_filter_children_by_entity_type(self):
         root = get_folder(name='f1')
-        get_article(root.main_location, name='c1')
+        child1 = get_article(root.main_location, name='c1')
         child2 = get_folder(root.main_location, name='c2')
-        self.s.add(root)
+        self.s.add_all([root, child1, child2])
         self.s.commit()
 
-        children = root.children(Folder).order_by(Content.id).all()
+        children = root.children(Folder).order_by(Location.id).all()
 
         self.assertEquals(len(children), 1)
-        self.assertEquals(children[0], child2)
+        self.assertEquals(children[0], child2.main_location)
 
     def test_filter_children_with_two_entity_types(self):
         root = get_folder(name='f1')
@@ -99,12 +99,37 @@ class TestContentDatabase(test.DatabaseTestCase):
         self.s.add(child2)
         self.s.commit()
 
+        import ipdb; ipdb.set_trace()
         children = root.children(Article, Folder, depth=2)
-        children = children.order_by(Content.id.asc()).all()
+        children = children.order_by(Location.id.asc()).all()
 
         self.assertEqual(len(children), 2)
-        self.assertEqual(children[0], child1)
-        self.assertEqual(children[1], child2)
+        self.assertEqual(children[0], child1.main_location)
+        self.assertEqual(children[1], child2.main_location)
+
+    def test_filter_children_on_attribute(self):
+        root = get_folder(name='f1')
+        child1 = get_article(root.main_location, name='c1', title='c1 title')
+        child2 = get_article(root.main_location, name='c2', title='c2 title')
+        self.s.add_all([root, child1, child2])
+        self.s.commit()
+
+        children = root.children(Article).filter(Article.title == 'c1 title').all()
+
+        self.assertEqual(len(children), 1)
+        self.assertEqual(children[0].content.title, 'c1 title')
+
+    def test_filter_children_on_content_attribute(self):
+        root = get_folder(name='f1')
+        child1 = get_article(root.main_location, name='c1', title='c1 title')
+        child2 = get_article(root.main_location, name='c2', title='c2 title')
+        self.s.add_all([root, child1, child2])
+        self.s.commit()
+
+        children = root.children().filter(Content.name == 'c1').all()
+
+        self.assertEqual(len(children), 1)
+        self.assertEqual(children[0], child1.main_location)
 
     def test_get_ancestors(self):
         root = get_folder(name='f1')
