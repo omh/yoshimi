@@ -99,7 +99,6 @@ class TestContentDatabase(test.DatabaseTestCase):
         self.s.add(child2)
         self.s.commit()
 
-        import ipdb; ipdb.set_trace()
         children = root.children(Article, Folder, depth=2)
         children = children.order_by(Location.id.asc()).all()
 
