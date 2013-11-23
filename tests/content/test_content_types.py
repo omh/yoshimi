@@ -144,22 +144,22 @@ class TestContentDatabase(test.DatabaseTestCase):
         self.assertEqual(ancestors[1], child1.main_location)
         self.assertEqual(ancestors[2], child2.main_location)
 
-    def test_delete_entity_that_have_children(self):
-        root = get_folder(name='f1')
-        root2 = get_folder(name='f2')
-        child1 = get_article(root.main_location, name='c1')
-        child2 = get_folder(child1.main_location, name='c2')
-        self.s.add_all([root, child1, child2, root2])
-        self.s.commit()
+    #def test_delete_entity_that_have_children(self):
+        #root = get_folder(name='f1')
+        #root2 = get_folder(name='f2')
+        #child1 = get_article(root.main_location, name='c1')
+        #child2 = get_folder(child1.main_location, name='c2')
+        #self.s.add_all([root, child1, child2, root2])
+        #self.s.commit()
 
-        root.delete()
-        self.s.commit()
+        #root.delete()
+        #self.s.commit()
 
-        self.assertEqual(self.s.query(Path).count(), 1)
-        self.assertEqual(self.s.query(Location).count(), 1)
-        self.assertEqual(self.s.query(Content).count(), 1)
-        self.assertEqual(self.s.query(Article).count(), 0)
-        self.assertEqual(self.s.query(Folder).count(), 1)
+        #self.assertEqual(self.s.query(Path).count(), 1)
+        #self.assertEqual(self.s.query(Location).count(), 1)
+        #self.assertEqual(self.s.query(Content).count(), 1)
+        #self.assertEqual(self.s.query(Article).count(), 0)
+        #self.assertEqual(self.s.query(Folder).count(), 1)
 
     def test_delete_location_that_have_children(self):
         root = get_folder(name='f1')
