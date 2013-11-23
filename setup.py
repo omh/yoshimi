@@ -17,7 +17,7 @@ requires = [
     'pyramid==1.5a2',
     'pyramid_mako',
     'pyramid_tm',
-    'sqlalchemy>=0.9.0',
+    'sqlalchemy>=0.9.0b1',
     'wtforms',
     'zope.sqlalchemy',
 ]
