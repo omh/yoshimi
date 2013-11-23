@@ -135,8 +135,8 @@ class ContentEditForm:
 
 
 class LoginForm(BaseForm):
-    email = TextField(u'Email', [required(), email()])
-    password = PasswordField(u'Password', [required()])
+    email = TextField('Email', [required(), email()])
+    password = PasswordField('Password', [required()])
 
 
 class ContentMoveForm(CsrfForm):
