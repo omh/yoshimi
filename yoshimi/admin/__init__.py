@@ -8,17 +8,18 @@ from yoshimi.views import move
 from yoshimi.url import get_root
 
 
-def includeme(config):
-    config.add_route(
-        'y.admin.login',
-        '/user/login',
-        renderer='admin/user/login.mako',
-        view=login
+def include_views(config):
+    config.add_route( 'y.admin.login', '/user/login')
+    config.add_view(
+        login, route_name='y.admin.login', renderer='admin/user/login.mako'
     )
-    config.add_route( 'y.admin.logout', '/user/logout', view=logout)
+
+    config.add_route( 'y.admin.logout', '/user/logout')
+    config.add_view(
+        logout, route_name='y.admin.logout', renderer='admin/user/logout.mako'
+    )
 
     config.add_route( 'y_admin', '*traverse', factory=get_root)
-
     config.add_view(
         edit, route_name='y_admin', name='edit', renderer='admin/edit.mako'
     )
@@ -31,3 +32,6 @@ def includeme(config):
     config.add_view(
         index, route_name='y_admin', renderer='admin/index.mako'
     )
+
+def includeme(config):
+    include_views(config)

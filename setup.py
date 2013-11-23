@@ -14,9 +14,10 @@ requires = [
     'js.jquery',
     'css.pure',
     'passlib',
-    'pyramid',
+    'pyramid==1.5a2',
+    'pyramid_mako',
     'pyramid_tm',
-    'sqlalchemy',
+    'sqlalchemy>=0.9.0',
     'wtforms',
     'zope.sqlalchemy',
 ]
