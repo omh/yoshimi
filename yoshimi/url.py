@@ -12,7 +12,7 @@ def extract_slug_from(url_parts, separator='-'):
     find.
 
     :param tuple url_parts: Url to extract id from
-    :param string separated: Character to use to separate url from the id
+    :param str separated: Character to use to separate url from the id
     :return tuple: Tuple of id, slug or None, None
     """
     mutable_url_parts = list(url_parts[:])

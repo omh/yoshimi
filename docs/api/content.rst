@@ -6,5 +6,8 @@
 .. automodule:: yoshimi.content
 
   .. autoclass:: Content
+    :members:
+
   .. autoclass:: Location
+    :members:
 

@@ -28,13 +28,18 @@ import sys, os
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
-intersphinx_mapping = {'pyramid': ('http://docs.pylonsproject.org/projects/pyramid/en/latest', None)}
+intersphinx_mapping = {
+    'pyramid': ('http://docs.pylonsproject.org/projects/pyramid/en/latest', None),
+    'sqlalchemy': ('http://docs.sqlalchemy.org/en/latest', None)
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
+
+autoclass_content = 'both'
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
