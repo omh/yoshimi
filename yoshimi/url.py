@@ -149,9 +149,9 @@ def make_tree(locations):
 
 
 def make_location_aware(locations):
-    """Generates ``__parent__`` and ``__name__`` attributes for a list representing a
-    :class:`~yoshimi.content.Location` lineage. This makes the list location
-    aware.
+    """Generates ``__parent__`` and ``__name__`` attributes for a list
+    representing a :class:`~yoshimi.content.Location` lineage. This makes the
+    list location aware.
 
     :param list locations: Lineage of a location. Root should be the first item.
     """
