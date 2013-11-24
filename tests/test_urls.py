@@ -44,14 +44,9 @@ class TestGenerateSlug(test.TestCase):
 
         self.obj = test.Mock(spec=Content)
 
-    def test_content_type_no_parent(self):
+    def test_content_type(self):
         self.obj.main_location = self.location
         slug = url.generate_slug(self.obj)
-        self.assertEqual(slug, "Test/Slug-5")
-
-    def test_content_type_with_parent(self):
-        self.obj.location_for_parent.return_value = self.location
-        slug = url.generate_slug(self.obj, parent=self.location)
         self.assertEqual(slug, "Test/Slug-5")
 
 
@@ -69,23 +64,23 @@ class TestUrl(test.TestCase):
         testing.tearDown()
 
     def test_url_with_default_route(self):
-        self.req.route_path.return_value = "/Test/Path"
+        self.req.resource_path.return_value = "/Test/Path"
         u = url.url(self.req, self.location)
         self.assertEqual("/Test/Path", u)
-        self.req.route_path.assert_called_with(
-            'route_name', traverse='Test/Slug-5', _query={}
+        self.req.resource_path.assert_called_with(
+            self.location, route_name='route_name',
         )
 
     def test_url_with_elements(self):
         url.url(self.req, self.location, 'edit')
-        self.req.route_path.assert_called_with(
-            'route_name', traverse=('Test', 'Slug-5', 'edit'), _query={}
+        self.req.resource_path.assert_called_with(
+            self.location, ('edit'), route_name='route_name',
         )
 
     def test_url_with_query_params(self):
-        url.url(self.req, self.location, q1='testing')
-        self.req.route_path.assert_called_with(
-            'route_name', traverse='Test/Slug-5', _query={'q1': 'testing'}
+        url.url(self.req, self.location, query={'q1': 'testing'})
+        self.req.resource_path.assert_called_with(
+            self.location, route_name='route_name', query={'q1': 'testing'}
         )
 
 
@@ -145,13 +140,28 @@ class TestMakeTree(test.TestCase):
         self.assertIsNone(url.make_tree([]))
 
     def test_returns_tree_with_root_first(self):
-        root = test.Mock()
         child1 = test.Mock()
         child2 = test.Mock()
+        child3 = test.Mock()
+        child3.slugs = ['a', 'b', 'c']
+        child3.id = 1
 
-        tree_root = url.make_tree([root, child1, child2])
+        root = url.make_tree([child1, child2, child3])
+        print(root)
 
-        self.assertEqual(tree_root._child, root)
-        self.assertEqual(tree_root._child._child, child1)
-        self.assertEqual(tree_root._child._child._child, child2)
-        self.assertEqual(child2.__parent__.__parent__, root)
+        self.assertEqual(child3, root['a']['b']['c-1'])
+
+
+class TestMakeLocationAware(test.TestCase):
+    def test_make_location_aware(self):
+        child1 = test.Mock()
+        child2 = test.Mock()
+        child2.slugs = ['a', 'b']
+        child2.id = 1
+
+        url.make_location_aware([child1, child2])
+
+        self.assertEquals('a', child1.__name__)
+        self.assertIsNone(child1.__parent__)
+        self.assertEquals('b-1', child2.__name__)
+        self.assertEquals(child1, child2.__parent__)

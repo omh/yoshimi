@@ -102,14 +102,6 @@ class Location(Base):
 
         self._parent = parent
 
-    def __getitem__(self, item):
-        if not hasattr(self, '_child'):
-            raise KeyError
-        if self._child and self._child.__name__ == item:
-            return self._child
-        else:
-            raise KeyError
-
     @classmethod
     def ancestors_by_id(cls, location_id):
         """Fetches all ancestor locations all the way to the root
@@ -410,20 +402,11 @@ class Content(Base):
     def parent(self):
         return self.main_location.parent
 
-    @property
-    def slugs(self):
-        return self.main_location.slugs
-
     def children(self, *args, **kwargs):
         return self.main_location.children(*args, **kwargs)
 
     def ancestors(self, *args, **kwargs):
         return self.main_location.ancestors(*args, **kwargs)
-
-    def location_for_parent(self, parent_location):
-        for l in self.locations:
-            if l.parent and l.parent.id == parent_location.id:
-                return l
 
     def delete(self):
         """

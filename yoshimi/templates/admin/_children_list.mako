@@ -21,7 +21,7 @@
                     <td class="tight">03/01/2013 12:12</td>
                     <td class="tight">Ole Morten Halvorsen</td>
                     <td class="tight table-admin-right">
-                        <a class="action" href="${req.y_url(child, 'edit', back=req.path_qs)}">
+                        <a class="action" href="${req.y_url(child, 'edit', query={'back': req.path_qs})}">
                             Edit
                         </a>
                     </td>

@@ -43,7 +43,7 @@ class TestContent(test.TestCase):
         a2 = get_article(a1.main_location, slug='Article2')
         a2.locations.append(Location(f1.main_location))
 
-        slugs = a2.slugs
+        slugs = a2.main_location.slugs
 
         self.assertEqual('Folder', slugs[0])
         self.assertEqual('Article1', slugs[1])
@@ -179,20 +179,3 @@ class TestContentDatabase(test.DatabaseTestCase):
         self.assertEqual(self.s.query(Content).count(), 2)
         self.assertEqual(self.s.query(Article).count(), 0)
         self.assertEqual(self.s.query(Folder).count(), 2)
-
-    def test_find_child_location_of_parent(self):
-        root = get_folder(name='r1')
-        root2 = get_folder(name='r2')
-        root3 = get_folder(name='r3')
-        article = get_article(root.main_location, name='a1')
-        l2 = Location(root2.main_location)
-        l3 = Location(root3.main_location)
-        article.locations.append(l2)
-        article.locations.append(l3)
-        self.s.add_all([root, root2, root3, article])
-        self.s.commit()
-
-        l2_fetched = article.location_for_parent(root2.main_location)
-        l3_fetched = article.location_for_parent(root3.main_location)
-        self.assertEqual(l2_fetched, l2)
-        self.assertEqual(l3_fetched, l3)
