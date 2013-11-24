@@ -145,10 +145,9 @@ class TestMakeTree(test.TestCase):
         self.assertIsNone(url.make_tree([]))
 
     def test_returns_tree_with_root_first(self):
-        from yoshimi.content import Location
         root = test.Mock()
-        child1 = test.Mock() 
-        child2 = test.Mock() 
+        child1 = test.Mock()
+        child2 = test.Mock()
 
         tree_root = url.make_tree([root, child1, child2])
 

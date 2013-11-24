@@ -26,7 +26,7 @@ class Policy:
 
     @property
     def selection_input_type(self):
-        return 'checkbox' if self.selection == 'multiple' else 'radio' 
+        return 'checkbox' if self.selection == 'multiple' else 'radio'
 
 
 class BrowsePolicy:

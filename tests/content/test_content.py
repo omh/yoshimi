@@ -60,8 +60,8 @@ class TestContent(test.TestCase):
 
     def test_creator_has_list_of_own_content(self):
         user = Content()
-        resource = Content(creator=user)
-        resource2 = Content(creator=user)
+        Content(creator=user)
+        Content(creator=user)
 
         self.assertEqual(len(user.own_content), 2)
 

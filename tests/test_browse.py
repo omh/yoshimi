@@ -2,6 +2,7 @@ from yoshimi import test
 from yoshimi.content import Content, Location
 from yoshimi.browse import Policy
 
+
 class TestPolicy(test.TestCase):
     def setUp(self):
         self.policy = Policy()
@@ -45,7 +46,7 @@ class TestPolicy(test.TestCase):
         l1 = Location()
         l1.id = 1
         c1.locations.append(l1)
-        
+
         c2 = Content(parent=c1.main_location)
         c2.main_location.id = 4
         l2 = Location(parent=l1)

@@ -8,6 +8,7 @@ env:
         - DB=mysql YOSHIMI_TEST_DB='mysql+mysqlconnector://travis@127.0.0.1/yoshimi_test'
         - DB=postgres YOSHIMI_TEST_DB='postgresql+psycopg2://travis@127.0.0.1/yoshimi_test'
 install:
+    - pip install flake8
     - pip install mock
     - pip install https://bitbucket.org/zzzeek/sqlalchemy/downloads/SQLAlchemy-0.9.0b1.tar.gz
     - pip install https://bitbucket.org/fanstatic/fanstatic/src/c3bf0937352a90e9df7fddd19954ff925d01ca66/3rdparty/which/which-1.1.3.py3.tar.gz
@@ -17,6 +18,7 @@ before_script:
       - psql -c 'DROP DATABASE IF EXISTS yoshimi_test;' -U postgres;
       - psql -c 'CREATE DATABASE yoshimi_test;' -U postgres
 script:
+    - flake8 --ignore=E501,E231,E121,E502,E251 yoshimi tests
     - if [[ $DB == mysql ]]; then pip install -q mysql-connector-python --use-mirrors; fi
     - if [[ $DB == postgres ]]; then pip install -q psycopg2 --use-mirrors; fi
 

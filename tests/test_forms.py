@@ -94,4 +94,3 @@ class TestContentMoveForm(test.TestCase):
             csrf_enabled=False
         )
         self.assertTrue(form.validate())
-

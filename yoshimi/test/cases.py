@@ -1,11 +1,7 @@
 import os
 import unittest
-from sqlalchemy import engine_from_config
-from sqlalchemy.orm import scoped_session
-from sqlalchemy.orm import sessionmaker
 from yoshimi import db
 from yoshimi.content import Base
-
 
 
 class TestCase(unittest.TestCase):
@@ -14,8 +10,9 @@ class TestCase(unittest.TestCase):
 
 dbs = []
 
+
 def setup_test_db(dsn):
-    global dbs 
+    global dbs
     if not dsn in dbs:
         db.setup_db(
             {'sqlalchemy.url': dsn},
@@ -25,6 +22,7 @@ def setup_test_db(dsn):
 
         Base.metadata.drop_all()
         Base.metadata.create_all()
+
 
 class DatabaseTestCase(unittest.TestCase):
     def setUp(self):
@@ -40,4 +38,3 @@ class DatabaseTestCase(unittest.TestCase):
         self.trans.rollback()
         self.s.close()
         self.connection.close()
-

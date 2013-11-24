@@ -1,11 +1,11 @@
 import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext import declarative
+from zope.sqlalchemy import mark_changed
 from yoshimi.db import (
     BaseQuery,
     DeclarativeBase,
     get_db,
-    mark_changed
 )
 
 
@@ -74,7 +74,6 @@ class Location(Base):
     paths = orm.relationship(
         Path,
         foreign_keys=[Path.descendant],
-#        lazy='joined',
         order_by=Path.length.desc(),
     )
 

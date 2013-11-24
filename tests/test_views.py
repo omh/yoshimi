@@ -52,7 +52,7 @@ class TestLoginView(test.TestCase):
 
     def test_sets_csrf_in_session_on_successful_login(self):
         self.request.y_user.login.return_value = {'A': 2}
-        rv = login(self.request)
+        login(self.request)
 
         self.assertTrue('_csrft_' in self.request.session)
 

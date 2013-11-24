@@ -1,5 +1,4 @@
 from passlib.context import CryptContext
-from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid import testing
 from yoshimi import auth
 from yoshimi import test
@@ -11,6 +10,7 @@ auth.custom_app_context = CryptContext(
     schemes=['sha256_crypt'],
     sha256_crypt__default_rounds=1
 )
+
 
 def mock_load_user(user):
     a = auth.AuthCoordinator(testing.DummyRequest())

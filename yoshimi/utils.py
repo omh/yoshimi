@@ -23,6 +23,7 @@ def context_redirect_back_url(request, context):
         request, request.GET.get('back', request.y_url(context))
     )
 
+
 def redirect_back(request, fallback='/', **options):
     """Helper to redirect to a url specified as a GET param
 

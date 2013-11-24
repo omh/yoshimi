@@ -1,4 +1,5 @@
 from math import ceil
+from pyramid.httpexceptions import HTTPNotFound
 from sqlite3 import Connection as SQLite3Connection
 from sqlalchemy import engine_from_config
 from sqlalchemy import event
@@ -8,7 +9,6 @@ from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.query import Query
 from zope.sqlalchemy import ZopeTransactionExtension
-from zope.sqlalchemy import mark_changed
 
 
 class Pagination(object):
@@ -101,7 +101,7 @@ class Pagination(object):
         last = 0
         for num in range(1, self.pages + 1):
             if num <= left_edge or \
-               (num > self.page - left_current - 1 and \
+               (num > self.page - left_current - 1 and
                 num < self.page + right_current) or \
                num > self.pages - right_edge:
                 if last + 1 != num:
@@ -119,10 +119,10 @@ class BaseQuery(Query):
             Returns an :class:`Pagination` object.
             """
             if error_out and page < 1:
-                abort(404)
+                raise HTTPNotFound(404)
             items = self.limit(per_page).offset((page - 1) * per_page).all()
             if not items and page != 1 and error_out:
-                abort(404)
+                raise HTTPNotFound(404)
 
             # No need to count if we're on the first page and there are fewer
             # items than we expected.

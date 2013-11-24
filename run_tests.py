@@ -3,6 +3,7 @@ import os
 import sys
 import nose
 
+
 os.environ['YOSHIMI_TEST_DB'] = 'sqlite:///:memory:'
 with_db = False
 argv = sys.argv[:]
@@ -12,8 +13,10 @@ if '--with-db' in argv:
     del argv[argv.index('--with-db')]
     with_db = True
 
+
 def abort_if_unsuccessful(successful):
-    [sys.exit(1) for s in successful if s == False]
+    [sys.exit(1) for s in successful if s is False]
+
 
 successful = []
 print("Running unit tests...")
