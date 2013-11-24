@@ -218,11 +218,9 @@ class Location(Base):
                     entity.id == Content.id
                 )
 
-        types = [e.__mapper_args__['polymorphic_identity'] for e in content_types]
+        types = [e.type for e in content_types]
         if types:
-            query = query.filter(
-                Content.type.in_(types)
-            )
+            query = query.filter(Content.type.in_(types))
 
         return query
 
