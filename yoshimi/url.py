@@ -133,8 +133,8 @@ def make_tree(locations):
     locations in the current path.
 
     :param list locations: List of all locations until the root.
-    :rtype :class:`~yoshimi.content.Location`
-    :return Root location with the appropriate traversal attrbutes
+    :rtype: :class:`~yoshimi.content.Location`
+    :return: Root location with the appropriate traversal attrbutes
      (__name__ and __parent__) set.
     """
     if len(locations) < 1:
@@ -149,8 +149,8 @@ def make_tree(locations):
 
 
 def make_location_aware(locations):
-    """Generates __parent__ and __name__ attributes for a list representing a
-    :class:`~yoshimi.content.Location lineage. This makes the list location
+    """Generates ``__parent__`` and ``__name__`` attributes for a list representing a
+    :class:`~yoshimi.content.Location` lineage. This makes the list location
     aware.
 
     :param list locations: Lineage of a location. Root should be the first item.
