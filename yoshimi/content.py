@@ -214,9 +214,7 @@ class Location(Base):
 
         if len(content_types) == 1:
             for entity in content_types:
-                query = query.filter(
-                    entity.id == Content.id
-                )
+                query = query.filter(entity.id == Content.id)
 
         types = [e.type for e in content_types]
         if types:
