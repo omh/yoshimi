@@ -16,10 +16,10 @@
             <div class="pure-g-r main-section border">
                 <div class="pure-u-2-3">
                     <h1 class="content-header content-name">${req.context.content.name}</h1>
-                    <span class="subtle slug-preview">${req.y_url(req.context)}</span>
+                    <span class="subtle slug-preview">${req.y_path(req.context)}</span>
                 </div>
                 <div class="pure-u-1-3 controls">
-                    <a href="${req.y_url(req.context, 'edit', back=req.path_qs)}" class="pure-button pure-button-primary">Edit</a>
+                    <a href="${req.y_path(req.context, 'edit', back=req.path_qs)}" class="pure-button pure-button-primary">Edit</a>
                     <a href="#" class="pure-button pure-button-warning">Move</a>
                     <a href="#" class="pure-button pure-button-error">Delete</a>
                 </div>

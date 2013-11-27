@@ -12,7 +12,8 @@ from pyramid.httpexceptions import HTTPFound
 
 
 def context_redirect_back_url(request, context):
-    """Helper to redirect to a url specified as a GET param and fall back to a context's URL if no 'back' GET parameter is specified.
+    """Helper to redirect to a url specified as a GET param and fall back to
+    a context's URL if no 'back' GET parameter is specified.
 
     :param request pyramid.request.Request: Request object
     :param context: Context to redirect to if 'back' url parameter is not
@@ -20,7 +21,7 @@ def context_redirect_back_url(request, context):
     :return string: Redirect url
     """
     return safe_redirect(
-        request, request.GET.get('back', request.y_url(context))
+        request, request.GET.get('back', request.y_path(context))
     )
 
 
@@ -47,7 +48,8 @@ def safe_redirect(request, url, fallback='/'):
            whitelist setting.
     :param pyramid.request.Request request: Request object
     :param string url: URL to check
-    :param string fallback: URL to return if the passed in `url` is not deemed safe
+    :param string fallback: URL to return if the passed in `url` is not deemed
+     safe
     """
     test_url = urlparse(url)
 

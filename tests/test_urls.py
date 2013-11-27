@@ -4,7 +4,7 @@ from yoshimi import test
 from yoshimi import url
 
 
-class TestUrl(test.TestCase):
+class TestPath(test.TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.req = test.Mock()
@@ -19,20 +19,20 @@ class TestUrl(test.TestCase):
 
     def test_url_with_default_route(self):
         self.req.resource_path.return_value = "/Test/Path"
-        u = url.url(self.req, self.location)
+        u = url.path(self.req, self.location)
         self.assertEqual("/Test/Path", u)
         self.req.resource_path.assert_called_with(
             self.location, route_name='route_name',
         )
 
     def test_url_with_elements(self):
-        url.url(self.req, self.location, 'edit')
+        url.path(self.req, self.location, 'edit')
         self.req.resource_path.assert_called_with(
             self.location, ('edit'), route_name='route_name',
         )
 
     def test_url_with_query_params(self):
-        url.url(self.req, self.location, query={'q1': 'testing'})
+        url.path(self.req, self.location, query={'q1': 'testing'})
         self.req.resource_path.assert_called_with(
             self.location, route_name='route_name', query={'q1': 'testing'}
         )
@@ -64,15 +64,15 @@ class TestRootFactory(test.TestCase):
         self.request.matchdict['traverse'] = ("a", "b-1")
         self.request.resource_path = test.Mock()
         self.request.resource_path.return_value = '/a/b-1'
-        self.request.y_url = test.Mock()
-        self.request.y_url.return_value = '/a/b-1'
+        self.request.y_path = test.Mock()
+        self.request.y_path.return_value = '/a/b-1'
 
         self.loc1 = test.Mock()
         self.loc2 = test.Mock()
         self.loc2.lineage = [self.loc1, self.loc2]
         self.context_getter = lambda id: self.loc2
 
-        self.patched_url = test.patch('yoshimi.url.url').start()
+        self.patched_url = test.patch('yoshimi.url.path').start()
         self.patched_url.return_value = '/a/b-1'
         self.addCleanup(test.patch.stopall)
 

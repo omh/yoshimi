@@ -10,11 +10,11 @@ from yoshimi.utils import safe_redirect
 
 class TestContextRedirectBackUrl(test.TestCase):
     def setUp(self):
-        def y_url(context):
+        def y_path(context):
             return '/context'
 
         self.req = testing.DummyRequest()
-        self.req.y_url = y_url
+        self.req.y_path = y_path
 
     @test.patch('yoshimi.utils.safe_redirect')
     def test_with_back_get_param(self, safe_redirect):
@@ -30,11 +30,11 @@ class TestContextRedirectBackUrl(test.TestCase):
 
 class TestRedirectBack(test.TestCase):
     def setUp(self):
-        def y_url(context):
+        def y_path(context):
             return '/context'
 
         self.req = testing.DummyRequest()
-        self.req.y_url = y_url
+        self.req.y_path = y_path
 
     def test_redirect_back(self):
         self.req.GET['back'] = '/testing'

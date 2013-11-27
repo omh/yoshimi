@@ -1,7 +1,7 @@
 <%def name="paginate(children, classes=None, url_func=None)">
 <%
     if url_func is None:
-        url_func = req.y_url
+        url_func = req.y_path
     if classes is None:
         classes=[]
 %>

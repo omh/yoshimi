@@ -5,4 +5,4 @@
 
 .. automodule:: yoshimi.url
 
-  .. autofunction:: url
+  .. autofunction:: path

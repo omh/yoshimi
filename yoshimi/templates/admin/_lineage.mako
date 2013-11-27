@@ -3,7 +3,7 @@
         if classes is None:
             classes=[]
         if url_func is None:
-            url_func = req.y_url
+            url_func = req.y_path
     %>
     <ul class="breadcrumb ${" ".join(classes)}">
     % for l in lineage:

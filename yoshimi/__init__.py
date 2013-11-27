@@ -21,7 +21,7 @@ def includeme(config):
     )
 
     config.add_request_method(get_db, name='y_db', reify=True)
-    config.add_request_method(url.url, name='y_url', reify=False)
+    config.add_request_method(url.path, name='y_path', reify=False)
     config.add_request_method(
         context_redirect_back_url, name='y_context_back_url', reify=False
     )

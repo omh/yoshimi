@@ -17,11 +17,11 @@
                             id="inlineCheckbox1"
                             value="option1">
                     </td>
-                    <td><a href="${req.y_url(child)}">${child.content.name}</td>
+                    <td><a href="${req.y_path(child)}">${child.content.name}</td>
                     <td class="tight">03/01/2013 12:12</td>
                     <td class="tight">Ole Morten Halvorsen</td>
                     <td class="tight table-admin-right">
-                        <a class="action" href="${req.y_url(child, 'edit', query={'back': req.path_qs})}">
+                        <a class="action" href="${req.y_path(child, 'edit', query={'back': req.path_qs})}">
                             Edit
                         </a>
                     </td>

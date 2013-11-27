@@ -5,7 +5,7 @@
         <fieldset>
             <legend class="content-header">
                 <span class="content-name">${req.context.content.name}</span>
-                <span class="subtle slug-preview">${req.y_url(req.context)}</span>
+                <span class="subtle slug-preview">${req.y_path(req.context)}</span>
             </legend>
 
             % if form.errors:

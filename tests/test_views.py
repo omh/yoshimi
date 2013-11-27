@@ -22,9 +22,9 @@ class TestMoveView(test.TestCase):
         self.assertTrue('form_errors' in rv)
 
     @test.patch('yoshimi.views.Location')
-    @test.patch('yoshimi.views.url')
-    def test_moves_location_when_new_parent_id_is_provided(self, url, Location):
-        url.return_value = '/move'
+    @test.patch('yoshimi.views.path')
+    def test_moves_location_when_new_parent_id_is_provided(self, path, Location):
+        path.return_value = '/move'
         self.request.POST['parent_location_id'] = 123
         self.request.context = test.Mock()
 

@@ -8,7 +8,7 @@
             % if a == req.context:
                 ${a.content.slug}
             % else:
-                <a href="${req.y_url(a)}">${a.content.slug}</a>
+                <a href="${req.y_path(a)}">${a.content.slug}</a>
             % endif
             % if not loop.last:
                 <span class="divider">/</span>

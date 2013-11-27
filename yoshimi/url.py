@@ -4,13 +4,13 @@ from pyramid.traversal import ResourceURL
 from zope.interface import implementer
 
 
-def url(request, location, *elements, route=None, **kw):
-    """Generates a URL for a given location and route name
+def path(request, location, *elements, route=None, **kw):
+    """Generates a Relative URL for a given location and route name
 
     Normally you would invoke this function via the request object as
-    ``y_url``::
+    ``y_path``::
 
-        request.y_url(location)
+        request.y_path(location)
 
     This function is just a light wrapper around
     :meth:`pyramid.request.Request.resource_path`.
@@ -134,7 +134,7 @@ class RootFactory():
 
         context_url = request.resource_path(context)
         if not self._validate_url(requested_url_parts, context_url):
-            raise HTTPMovedPermanently(location=request.y_url(context))
+            raise HTTPMovedPermanently(location=request.y_path(context))
 
         return self._get_root(requested_url_parts, context.lineage)
 
@@ -146,7 +146,7 @@ class RootFactory():
 
     def _validate_url(self, requested_url_parts, context_url):
         requested_slug = "/".join(requested_url_parts)
-        return requested_slug.lstrip('/') == context_url.lstrip('/')
+        return requested_slug.strip('/') == context_url.strip('/')
 
     def _get_root(self, path_elements, contexts):
         if len(path_elements) < 1:
