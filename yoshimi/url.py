@@ -21,8 +21,8 @@ def url(request, location, *elements, route=None, **kw):
     :type location: :class:`~yoshimi.content.Location`
     :param str route: Route to use when generating the URL. If not provided the
      :attr:`pyramid.request.Request.matched_route.name` will be used.
-    param dict kw: Dict of keywords which are passed onto
-     :meth:`~pyramid.request.resource_path`
+    :param dict kw: Dict of keywords which are passed onto
+     :meth:`pyramid.request.Request.resource_url`
     :return str: URL to location
     """
     route = request.matched_route.name if route is None else route
