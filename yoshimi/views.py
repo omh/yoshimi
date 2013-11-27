@@ -12,7 +12,6 @@ from yoshimi.content import Location
 from yoshimi.forms import LoginForm
 from yoshimi.forms import ContentEditForm
 from yoshimi.forms import ContentMoveForm
-from yoshimi.url import path
 from yoshimi.utils import LazyPagination
 from yoshimi.utils import page_number
 from yoshimi.utils import redirect_back
@@ -35,7 +34,7 @@ def edit(request):
     if request.method == 'POST' and form.validate():
         form.populate_obj(request.context.content)
         request.y_db.add(request.context.content)
-        return redirect_back(request, path(request, request.context))
+        return redirect_back(request, request.y_path(request.context))
     return {
         'form': form,
         'back_url': request.GET.get('back', '')
@@ -47,8 +46,7 @@ def move(request):
     if request.method == 'POST' and form.validate():
         new_location = Location.query.get(form.parent_location_id.data)
         request.context.move(new_location)
-        u = redirect_back(request, path(request, request.context))
-        print("REDIR BACK %s" % u)
+        u = redirect_back(request, request.y_path(request.context))
         return u
     return {'form_errors': form.errors}
 
