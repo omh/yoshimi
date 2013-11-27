@@ -4,4 +4,5 @@
 ---------------------
 
 .. automodule:: yoshimi.url
-  :members:
+
+  .. autofunction:: url

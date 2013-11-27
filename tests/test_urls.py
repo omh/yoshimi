@@ -1,53 +1,7 @@
 from pyramid import testing
-from pyramid.httpexceptions import HTTPNotFound
 from pyramid.httpexceptions import HTTPMovedPermanently
 from yoshimi import test
 from yoshimi import url
-
-
-class TestExtractSlugFrom(test.TestCase):
-    def setUp(self):
-        self.valid_urls = [
-            ('/Wins-Champions-League-28', '/Wins-Champions-League-28'),
-            ('/News/Sports-28/Arsenal', '/News/Sports-28'),
-            ('/News-12/Sports-28/Arsenal', '/News-12/Sports-28'),
-            ('/News-28','/News-28'),
-            ('News-28', 'News-28'),
-            ('28','28'),
-        ]
-        self.invalid_urls = [
-            '/',
-            '/News/Sports/'
-            '/News/Sports-aa/',
-            '/News/Sports28',
-            '/News/Sports_28',
-        ]
-
-    def test_valid_urls(self):
-        for valid_url, valid_slug in self.valid_urls:
-            id, slug = url.extract_slug_from(valid_url.split("/"))
-            self.assertEqual(28, id, "Id from url %s should be 28" % valid_url)
-            self.assertEqual(valid_slug, slug, "Slug should be '%s'" % valid_slug)
-
-    def test_invalid_urls(self):
-        for invalid_url in self.invalid_urls:
-            id, slug = url.extract_slug_from(invalid_url.split("/"))
-            self.assertIsNone(id, "Id of url '%s' should be none" % invalid_url)
-
-
-class TestGenerateSlug(test.TestCase):
-    def setUp(self):
-        from yoshimi.content import Content
-        self.location = test.Mock()
-        self.location.slugs = ['Test', 'Slug']
-        self.location.id = 5
-
-        self.obj = test.Mock(spec=Content)
-
-    def test_content_type(self):
-        self.obj.main_location = self.location
-        slug = url.generate_slug(self.obj)
-        self.assertEqual(slug, "Test/Slug-5")
 
 
 class TestUrl(test.TestCase):
@@ -84,84 +38,75 @@ class TestUrl(test.TestCase):
         )
 
 
-class TestRedirectIfSlugMismatch(test.TestCase):
+class TestResourceUrlAdapter(test.TestCase):
+    def test_populates_location_aware_attributes(self):
+        loc1 = test.MagicMock()
+        loc2 = test.MagicMock()
+        loc3 = test.MagicMock()
+        loc3.lineage = [loc1, loc2, loc3]
+        loc3.id = 1
+        loc3.slugs = ['a', 'b', 'c']
+
+        request = testing.DummyRequest()
+        url.ResourceUrlAdapter(loc3, request)
+
+        self.assertIsNone(loc1.__parent__)
+        self.assertIsNotNone(loc1.__name__)
+        self.assertIsNotNone(loc2.__parent__)
+        self.assertIsNotNone(loc2.__name__)
+        self.assertIsNotNone(loc3.__parent__)
+        self.assertIsNotNone(loc3.__name__)
+
+
+class TestRootFactory(test.TestCase):
     def setUp(self):
-        self.req = test.Mock()
+        self.request = testing.DummyRequest()
+        self.request.matchdict['traverse'] = ("a", "b-1")
+        self.request.resource_path = test.Mock()
+        self.request.resource_path.return_value = '/a/b-1'
+        self.request.y_url = test.Mock()
+        self.request.y_url.return_value = '/a/b-1'
 
-    def _fut(self):
-        from yoshimi.url import redirect_if_slug_mismatch
-        return redirect_if_slug_mismatch
+        self.loc1 = test.Mock()
+        self.loc2 = test.Mock()
+        self.loc2.lineage = [self.loc1, self.loc2]
+        self.context_getter = lambda id: self.loc2
 
-    def test_return_none_when_slug_matches(self):
-        self.assertIsNone(self._fut()(self.req, "/a", "/a"))
+        self.patched_url = test.patch('yoshimi.url.url').start()
+        self.patched_url.return_value = '/a/b-1'
+        self.addCleanup(test.patch.stopall)
 
-    def test_raise_redirect_when_slug_mismatch(self):
-        self.req.route_path.return_value = '/admin/somewhere'
-        with self.assertRaises(HTTPMovedPermanently) as redir:
-            self._fut()(self.req, '/a', '/b')
-            self.assertEqual('/admin/somewhere', redir.location)
+    def test_returns_resource_root(self):
+        root = url.RootFactory(self.context_getter)(self.request)
+        self.assertEqual(self.loc2, root['a']['b-1'])
 
+    def test_returns_none_without_traverse_match(self):
+        self.request.matchdict = None
+        root = url.RootFactory(self.context_getter)(self.request)
+        self.assertIsNone(root)
 
-class TestLineageForRequest(test.TestCase):
-    def setUp(self):
-        self.req = testing.DummyRequest()
+    def test_returns_none_without_context(self):
+        root = url.RootFactory(lambda id: None)(self.request)
+        self.assertIsNone(root)
 
-    def test_location_not_found(self):
-        with self.assertRaises(HTTPNotFound):
-            url.lineage_for_request(self.req)
+    def test_raises_redirect_on_url_mismatch(self):
+        self.request.matchdict['traverse'] = ("bla-1",)
+        with self.assertRaises(HTTPMovedPermanently) as cm:
+            url.RootFactory(self.context_getter)(self.request)
 
-    def test_raises_redirect_when_slug_does_not_match(self):
-        with test.patch('yoshimi.url.extract_slug_from') as extract_slug_mock, \
-             test.patch('yoshimi.url.locations_for_id') as locations_for_id_mock, \
-             test.patch('yoshimi.url.generate_slug') as generate_slug_mock, \
-             test.patch('yoshimi.url.redirect_if_slug_mismatch') as redirect_if:
-            extract_slug_mock.return_value = (5, '/testing')
-            locations_for_id_mock.return_value = [1,2,3]
-            generate_slug_mock.return_value = '/SomeSlug'
-            redirect_if.side_effect = HTTPMovedPermanently(location='/testing')
+        self.assertEqual(cm.exception.location, '/a/b-1')
 
-            with self.assertRaises(HTTPMovedPermanently):
-                url.lineage_for_request(self.req)
+    def test_returns_resource_root_with_trailing_view(self):
+        self.request.matchdict['traverse'] = ('a', 'b-1', 'view')
+        root = url.RootFactory(self.context_getter)(self.request)
+        self.assertEqual(self.loc2, root['a']['b-1'])
 
-    def test_returns_correct_linage(self):
-        with test.patch('yoshimi.url.extract_slug_from') as extract_slug_mock, \
-             test.patch('yoshimi.url.locations_for_id') as locations_for_id_mock, \
-             test.patch('yoshimi.url.generate_slug') as generate_slug_mock:
-            extract_slug_mock.return_value = (5, '/testing')
-            locations_for_id_mock.return_value = [1,2,3]
-            generate_slug_mock.return_value = '/testing'
+    def test_returns_none_with_invalid_url_format(self):
+        self.request.matchdict['traverse'] = ('a', 'b2')
+        self.context_getter = test.Mock()
+        self.context_getter.return_value = None
 
-            rv = url.lineage_for_request(self.req)
-            self.assertEqual(rv, [1,2,3])
+        root = url.RootFactory(self.context_getter)(self.request)
 
-
-class TestMakeTree(test.TestCase):
-    def test_returns_none_if_empty(self):
-        self.assertIsNone(url.make_tree([]))
-
-    def test_returns_tree_with_root_first(self):
-        child1 = test.Mock()
-        child2 = test.Mock()
-        child3 = test.Mock()
-        child3.slugs = ['a', 'b', 'c']
-        child3.id = 1
-
-        root = url.make_tree([child1, child2, child3])
-        print(root)
-
-        self.assertEqual(child3, root['a']['b']['c-1'])
-
-
-class TestMakeLocationAware(test.TestCase):
-    def test_make_location_aware(self):
-        child1 = test.Mock()
-        child2 = test.Mock()
-        child2.slugs = ['a', 'b']
-        child2.id = 1
-
-        url.make_location_aware([child1, child2])
-
-        self.assertEquals('a', child1.__name__)
-        self.assertIsNone(child1.__parent__)
-        self.assertEquals('b-1', child2.__name__)
-        self.assertEquals(child1, child2.__parent__)
+        self.context_getter.assert_called_with(None)
+        self.assertIsNone(root)

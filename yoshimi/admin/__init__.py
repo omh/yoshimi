@@ -4,7 +4,6 @@ from yoshimi.views import login
 from yoshimi.views import logout
 from yoshimi.views import browse
 from yoshimi.views import move
-from yoshimi.url import get_root
 
 
 def include_views(config):
@@ -18,7 +17,7 @@ def include_views(config):
         logout, route_name='y.admin.logout', renderer='admin/user/logout.mako'
     )
 
-    config.add_route('y_admin', '*traverse', factory=get_root)
+    config.add_route('y_admin', '*traverse')
     config.add_view(
         edit, route_name='y_admin', name='edit', renderer='admin/edit.mako'
     )
