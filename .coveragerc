@@ -1,0 +1,8 @@
+[run]
+source = yoshimi
+
+[report]
+omit =
+    */tests/*
+    */python?.?/*
+    */site-packages/nose/*
