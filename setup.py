@@ -22,11 +22,17 @@ requires = [
     'zope.sqlalchemy',
 ]
 
-test_requires = [
+tests_requires = [
     'nose',
+    'coverage',
+    'flake8',
     'psycopg2',
     'mysql-connector-python'
-],
+]
+
+docs_extras = [
+    'Sphinx',
+]
 
 setup(
     name='yoshimi',
@@ -47,7 +53,11 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=requires,
-    tests_require=test_requires,
+    tests_require=tests_requires,
+    extras_require={
+        'testing': tests_requires,
+        'docs': docs_extras,
+    },
     entry_points={
         'fanstatic.libraries': [
             'yoshimi_admin = yoshimi.admin.fanstatic:library',
