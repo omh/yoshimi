@@ -5,7 +5,7 @@ from zope.interface import implementer
 
 
 def path(request, location, *elements, route=None, **kw):
-    """Generates a absolute URL for a given location and route name
+    """Generates an absolute URL for a given location and route name
 
     Normally you would invoke this function via the request object as
     ``y_path``::
