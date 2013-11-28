@@ -6,3 +6,4 @@
 .. automodule:: yoshimi.url
 
   .. autofunction:: path
+  .. autofunction:: url

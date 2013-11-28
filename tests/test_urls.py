@@ -4,38 +4,57 @@ from yoshimi import test
 from yoshimi import url
 
 
-class TestPath(test.TestCase):
+class _PathFunctionTests(test.TestCase):
     def setUp(self):
-        self.config = testing.setUp()
         self.req = test.Mock()
         self.req.matched_route.name = 'route_name'
-
         self.location = test.Mock()
-        self.location.slugs = ['Test', 'Slug']
-        self.location.id = 5
+        self.fut = None
 
-    def tearDown(self):
-        testing.tearDown()
+    def assert_call(self, *args, **kw):
+        pass
 
     def test_url_with_default_route(self):
-        self.req.resource_path.return_value = "/Test/Path"
-        u = url.path(self.req, self.location)
-        self.assertEqual("/Test/Path", u)
-        self.req.resource_path.assert_called_with(
+        self.fut(self.req, self.location)
+        self.assert_call(
             self.location, route_name='route_name',
         )
 
+    def test_url_with_route(self):
+        self.fut(self.req, self.location, route='testroute')
+        self.assert_call(
+            self.location, route_name='testroute',
+        )
+
     def test_url_with_elements(self):
-        url.path(self.req, self.location, 'edit')
-        self.req.resource_path.assert_called_with(
+        self.fut(self.req, self.location, 'edit')
+        self.assert_call(
             self.location, ('edit'), route_name='route_name',
         )
 
     def test_url_with_query_params(self):
-        url.path(self.req, self.location, query={'q1': 'testing'})
-        self.req.resource_path.assert_called_with(
+        self.fut(self.req, self.location, query={'q1': 'testing'})
+        self.assert_call(
             self.location, route_name='route_name', query={'q1': 'testing'}
         )
+
+
+class TestPath(_PathFunctionTests):
+    def setUp(self):
+        super().setUp()
+        self.fut = url.path
+
+    def assert_call(self, *args, **kw):
+        self.req.resource_path.assert_called_with(*args, **kw)
+
+
+class TestUrl(_PathFunctionTests):
+    def setUp(self):
+        super().setUp()
+        self.fut = url.url
+
+    def assert_call(self, *args, **kw):
+        self.req.resource_url.assert_called_with(*args, **kw)
 
 
 class TestResourceUrlAdapter(test.TestCase):

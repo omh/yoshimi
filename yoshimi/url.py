@@ -5,7 +5,7 @@ from zope.interface import implementer
 
 
 def path(request, location, *elements, route=None, **kw):
-    """Generates a Relative URL for a given location and route name
+    """Generates a absolute URL for a given location and route name
 
     Normally you would invoke this function via the request object as
     ``y_path``::
@@ -22,11 +22,38 @@ def path(request, location, *elements, route=None, **kw):
     :param str route: Route to use when generating the URL. If not provided the
      :attr:`pyramid.request.Request.matched_route.name` will be used.
     :param dict kw: Dict of keywords which are passed onto
-     :meth:`pyramid.request.Request.resource_url`
-    :return str: URL to location
+     :meth:`pyramid.request.Request.resource_path`
+    :return str: Relative URL to location
     """
     route = request.matched_route.name if route is None else route
     return request.resource_path(
+        location, *elements, route_name=route, **kw
+    )
+
+
+def url(request, location, *elements, route=None, **kw):
+    """Generates a absolute URL for a given location and route name
+
+    Normally you would invoke this function via the request object as
+    ``y_url``::
+
+        request.y_url(location)
+
+    This function is just a light wrapper around
+    :meth:`pyramid.request.Request.resource_url`.
+
+    :param request: A request object
+    :type request: :class:`pyramid.request.Request`
+    :param location: Location to generate URL for
+    :type location: :class:`~yoshimi.content.Location`
+    :param str route: Route to use when generating the URL. If not provided the
+     :attr:`pyramid.request.Request.matched_route.name` will be used.
+    :param dict kw: Dict of keywords which are passed onto
+     :meth:`pyramid.request.Request.resource_url`
+    :return str: Absolute URL to location
+    """
+    route = request.matched_route.name if route is None else route
+    return request.resource_url(
         location, *elements, route_name=route, **kw
     )
 
