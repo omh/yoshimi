@@ -99,3 +99,11 @@ class LazyPagination(object):
             self.paginator = self.query.paginate(self.page)
 
         return getattr(self.paginator, name)
+
+
+class Proxy():
+    def __getattr__(self, name):
+        return getattr(self._proxy, name)
+
+    def __str__(self):
+        return self._proxy.__str__()

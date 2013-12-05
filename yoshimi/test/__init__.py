@@ -7,5 +7,6 @@ except ImportError:
 from nose.plugins.attrib import attr
 from yoshimi.test.cases import TestCase
 from yoshimi.test.cases import DatabaseTestCase
+from yoshimi.test.cases import QueryCountTestCase
 
 all_databases = attr('database')

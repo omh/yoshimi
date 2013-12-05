@@ -74,7 +74,7 @@ class Location(Base):
     paths = orm.relationship(
         Path,
         foreign_keys=[Path.descendant],
-        order_by=Path.length.desc(),
+        # order_by=Path.length.desc(),
     )
 
     def __init__(self, parent=None, **kwargs):
@@ -180,7 +180,7 @@ class Location(Base):
 
         :param tuple content_types: Content Types to fetch. If you don't
          specify any all content types will be fetched.
-        :param int depth: How many levels down to fetch children. Defaults to 1.
+        :param int depth: How many levels down to fetch children. Defaults to 1
         :rtype: :class:`sqlalchemy.orm.query.Query`
         :return: Once query is triggered it will return a list of
          :class:`.Location` objects.
@@ -349,12 +349,11 @@ class Content(Base):
 
     def __init__(self, parent=None, **kwargs):
         """
-        :param Location parent: Where in the tree to place the resource.
-                                Pass in None if you want to create a new root
-                                Content or a location instance to create the
-                                resource below that location.
         :param string name: The content's name
         :param string slug: The content's slug
+        :param Location parent: Where in the tree to place the resource. Pass
+         in None if you want to create a new root Content or a location
+         instance to create the resource below that location.
         """
         super(Content, self).__init__(**kwargs)
 

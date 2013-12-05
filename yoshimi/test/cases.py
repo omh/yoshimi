@@ -1,5 +1,7 @@
+from contextlib import contextmanager
 import os
 import unittest
+from sqlalchemy import event
 from yoshimi import db
 from yoshimi.content import Base
 
@@ -38,3 +40,45 @@ class DatabaseTestCase(unittest.TestCase):
         self.trans.rollback()
         self.s.close()
         self.connection.close()
+
+
+class QueryCountTestCase(DatabaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.enable_count = False
+
+    @contextmanager
+    def count_queries(self):
+        self.statements = []
+
+        #@event.listens_for(self.connection, 'before_cursor_execute')
+        def catch_queries(conn, cursor, statement, *args):
+            self.statements.append(statement)
+
+        event.listen(self.connection, 'before_cursor_execute', catch_queries)
+        yield
+        event.remove(self.connection, 'before_cursor_execute', catch_queries)
+
+    def assertQueryCount(self, expected_count):
+        if expected_count != len(self.statements):
+            queries = "\n".join(["- %s" % q for q in self.statements])
+            raise AssertionError(
+                "%s queries != expected %s. Queries:\n%s" % (
+                    len(self.statements),
+                    expected_count,
+                    queries
+                )
+            )
+
+    def add_object(self, obj, commit=True):
+        self.s.add(obj)
+        if commit:
+            self.s.commit()
+
+        return obj
+
+    def get_id_from_added_object(self, obj):
+        self.add_object(obj, commit=True)
+        id = obj.id
+        self.s.expire(obj)
+        return id

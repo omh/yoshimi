@@ -19,7 +19,7 @@ from yoshimi.utils import redirect_back
 
 def index(request):
     children = LazyPagination(
-        request.context.children(),
+        request.y_repo.query(request.context).children().load_content().load_path(),
         page_number(request.GET.get('page', 1))
     )
 
