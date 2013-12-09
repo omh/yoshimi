@@ -217,10 +217,6 @@ def children(query_maker, parent, *content_types):
         Path, Path.descendant == Location.id
     ).join(
         Content, Content.id == Location.content_id
-    ).join(
-        Location.content.of_type(
-            with_polymorphic(Content, content_types, flat=True)
-        )
     ).filter(
         Path.ancestor == parent.id,
     )
@@ -231,6 +227,10 @@ def children(query_maker, parent, *content_types):
 
     types = [t.type for t in content_types]
     if types:
-        q = q.filter(Content.type.in_(types))
+        q = q.join(
+            Location.content.of_type(
+                with_polymorphic(Content, content_types, flat=True)
+            )
+        ).filter(Content.type.in_(types))
 
     return q
