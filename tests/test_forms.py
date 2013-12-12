@@ -8,7 +8,7 @@ from yoshimi.forms import CsrfForm
 from yoshimi import test
 
 
-class Dummy(object):
+class Dummy:
     """Mock's aren't pickle'able, so manually creating a dummy object
     instead."""
     a = "testing"

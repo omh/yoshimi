@@ -50,15 +50,3 @@ class TestLocationDatabase(test.DatabaseTestCase):
         self.assertEquals(
             child2.main_location.parent.parent, root.main_location
         )
-
-    def test_move(self):
-        root = Location()
-        root2 = Location()
-        child = Location(root)
-        self.s.add(root)
-        self.s.add(root2)
-        self.s.add(child)
-        self.s.commit()
-
-        child.move(root2)
-        self.assertEquals(root2, child.parent)

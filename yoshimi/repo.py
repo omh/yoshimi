@@ -13,6 +13,7 @@ from sqlalchemy.orm import (
     joinedload,
     with_polymorphic,
 )
+from zope.sqlalchemy import mark_changed
 from yoshimi.content import Location
 from yoshimi.content import Content
 from yoshimi.content import Path
@@ -39,7 +40,16 @@ class Repo(Proxy):
         """
         self._proxy = session
 
+    def move(self, subject):
+        return MoveOperation(self._proxy, subject)
+
+    def delete(self, subject):
+        op = DeleteOperation(self._proxy)
+        op.delete_location(subject)
+
     # @TODO: entities should be *entities to match SQLA Query api
+    # @TODO: should children() use contains_eager on content as we're already
+    # joining in content? Does it make sense to load children without content?
     def query(self, entities):
         """
         Wrapper around SQLAlchemy's :class:`~sqlalchemy.orm.query.Query` class
@@ -66,8 +76,9 @@ class Repo(Proxy):
 
         Example of how to fetch 10 articles sorted by the article's title and
         also eagerly load in all article contents and what is required to
-        generate URLs to the articles. This ensure everything is fetched in 1
-        query and will prevent N+1 queries::
+        generate URLs to the articles. This ensures everything is fetched in 1
+        query and will prevent the all too common `N+1` number of queries
+        problem::
 
             request.y_repo.query(article).children() \\
             .load_content().load_path() \\
@@ -80,7 +91,7 @@ class Repo(Proxy):
         return Query(self._proxy, entities)
 
 
-class Query():
+class Query:
     def __init__(self, session, entities):
         self.session = session
         self._entities = entities
@@ -234,3 +245,102 @@ def children(query_maker, parent, *content_types):
         ).filter(Content.type.in_(types))
 
     return q
+
+
+class MoveOperation:
+    def __init__(self, session, subject):
+        self._session = session
+        self._subject = subject
+
+    def to(self, new_parent):
+        """Moves a location to under a new location
+
+        This will also recursivly move all children of this location.
+
+        Because this method uses raw queries all objects in the session will
+        be expired after calling this method.
+
+        :param Location new_parent: The new parent for this location
+        """
+        self._del_non_interconnected_paths(self._session, self._subject.id)
+        self._recreate_paths(self._session, self._subject.id, new_parent.id)
+
+        mark_changed(self._session)
+        self._session.expire_all()
+
+    def _del_non_interconnected_paths(self, session, subject_id):
+        """Deletes paths that are not interconnected."""
+        if session.bind.dialect.name == "mysql":
+            r = session.execute("""DELETE P FROM path as p
+                JOIN path AS d ON p.descendant = d.descendant
+                LEFT JOIN path as X
+                    ON x.ancestor = d.ancestor
+                    AND x.descendant = p.ancestor
+                WHERE
+                    d.ancestor = :location_id
+                    AND x.ancestor IS NULL
+            """, {'location_id': subject_id})
+            print("RES %s" % r.rowcount)
+        else:
+            subq = session.query(Path.descendant).filter(
+                Path.ancestor == subject_id
+            ).subquery()
+            session.query(Path).filter(
+                Path.descendant.in_(subq),
+                ~Path.ancestor.in_(subq)
+            ).delete(synchronize_session=False)
+
+    def _recreate_paths(self, session, subject_id, new_location_id):
+        session.execute("""INSERT INTO
+                path (ancestor, descendant, length)
+            SELECT
+                supertree.ancestor,
+                subtree.descendant,
+                supertree.length + subtree.length + 1
+            FROM
+                path as supertree
+            JOIN
+                path as subtree ON subtree.ancestor = :subtree
+            WHERE
+                supertree.descendant = :new_parent_location
+        """, {
+            "subtree": subject_id,
+            "new_parent_location": new_location_id
+        })
+
+
+class DeleteOperation:
+    def __init__(self, session):
+        self._session = session
+
+    def delete_location(self, location):
+        """Deletes this location and any children of this location. Any content
+        entries that become orphant will also be deleted.
+
+        Because this method uses raw queries all objects in the session will
+        be expired after calling this method.
+        """
+        def _del_path_subtree(session, location_id):
+            if session.bind.dialect.name == "mysql":
+                session.execute("""DELETE l2 from location
+                    JOIN path ON path.ancestor = location.id
+                    JOIN location AS l2 ON path.descendant = l2.id
+                    WHERE location.id = :location_id
+                """, {'location_id': location_id})
+            else:
+                subq = session.query(Path.descendant).filter(
+                    Path.ancestor == location_id
+                ).subquery()
+                session.query(Location).filter(
+                    Location.id.in_(subq)
+                ).delete(synchronize_session=False)
+
+        _del_path_subtree(self._session, location.id)
+
+        # Clean up any content that might have been orphaned
+        self._session.query(Content).filter(
+            ~Content.locations.any()
+        ).delete(synchronize_session=False)
+
+        mark_changed(self._session)
+        self._session.expire_all()

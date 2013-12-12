@@ -59,7 +59,7 @@ class TestContentDatabase(test.DatabaseTestCase):
         self.s.add_all([root, child1, child2])
         self.s.commit()
 
-        ancestors = child2.ancestors().all()
+        ancestors = child2.main_location.lineage
 
         self.assertEqual(len(ancestors), 3)
         self.assertEqual(ancestors[0], root.main_location)

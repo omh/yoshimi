@@ -3,18 +3,12 @@ from sqlalchemy import orm
 from sqlalchemy.ext import declarative
 from zope.sqlalchemy import mark_changed
 from yoshimi.db import (
-    BaseQuery,
     DeclarativeBase,
     get_db,
 )
 
 
 Base = declarative.declarative_base(cls=DeclarativeBase)
-
-
-def get_query(obj, *args, **kwargs):
-    kwargs['session'] = get_db()
-    return BaseQuery(*args, **kwargs)
 
 
 class Path(Base):
@@ -102,36 +96,6 @@ class Location(Base):
 
         self._parent = parent
 
-    @classmethod
-    def ancestors_by_id(cls, location_id):
-        """Fetches all ancestor locations all the way to the root
-
-        Given a structure of::
-
-            root
-            -- child1
-            -- -- child2
-            -- child3
-            -- -- child4
-
-        Calling this method on child4 will return the following list
-        of locations::
-
-            [root, child3, child4]
-
-        :rtype: :class:`sqlalchemy.orm.query.Query`
-        """
-        return cls.query.join(
-            Path, Path.ancestor == Location.id
-        ).filter(
-            Path.descendant == location_id
-        ).order_by(
-            Path.length.desc()
-        ).options(
-            orm.joinedload_all('paths.ancestor_location.content'),
-            orm.joinedload_all('content'),
-        )
-
     @property
     def parent(self):
         """Fetches the parent location
@@ -141,15 +105,10 @@ class Location(Base):
 
         :rtype: A :class:`.Location` or None
         """
-        if hasattr(self, '_parent') and getattr(self, '_parent') is not None:
-            return self._parent
-
         try:
-            self._parent = self.sorted_paths[-2].ancestor_location
+            return self.sorted_paths[-2].ancestor_location
         except IndexError:
-            self._parent = None
-
-        return self._parent
+            return None
 
     @property
     def lineage(self):
@@ -170,66 +129,6 @@ class Location(Base):
     @property
     def slugs(self):
         return [p.ancestor_location.slug for p in self.sorted_paths]
-
-    def ancestors(self):
-        return self.ancestors_by_id(self.id)
-
-    def children(self, *content_types, depth=1):
-        """Fetches a list of children returning a query that can be filtered
-        further if needed.
-
-        :param tuple content_types: Content Types to fetch. If you don't
-         specify any all content types will be fetched.
-        :param int depth: How many levels down to fetch children. Defaults to 1
-        :rtype: :class:`sqlalchemy.orm.query.Query`
-        :return: Once query is triggered it will return a list of
-         :class:`.Location` objects.
-        """
-        type_alias = orm.with_polymorphic(Content, content_types, flat=True)
-
-        query = get_query(self, Location)
-        query = query.join(
-            Path, Path.descendant == Location.id
-        ).join(
-            Content, Content.id == Location.content_id
-        ).join(
-            Location.content.of_type(type_alias)
-        ).filter(
-            Path.ancestor == self.id,
-            Path.length.between(1, depth)
-        ).options(
-            #orm.contains_eager('content'),
-            #orm.contains_eager('paths'),
-            #orm.contains_eager(Location.content.of_type(type_alias))
-        )
-
-        if len(content_types) == 1:
-            for entity in content_types:
-                query = query.filter(entity.id == Content.id)
-
-        types = [e.type for e in content_types]
-        if types:
-            query = query.filter(Content.type.in_(types))
-
-        return query
-
-    def move(self, new_parent):
-        """Moves this location to under new location
-
-        This will also recursivly move all children of this location.
-
-        Because this method uses raw queries all objects in the session will
-        be expired after calling this method.
-
-        :param Location new_parent: The new parent for this location
-        """
-        session = get_db()
-        self._del_non_interconnected_paths(session)
-        self._recreate_paths(session, self.id, new_parent.id)
-        self._parent = new_parent
-
-        mark_changed(session)
-        session.expire_all()
 
     def delete(self):
         """Deletes this location and any children of this location. Any content
@@ -263,46 +162,6 @@ class Location(Base):
 
         mark_changed(session)
         session.expire_all()
-
-    def _del_non_interconnected_paths(self, session):
-        """Deletes paths that are not interconnected."""
-        if session.bind.dialect.name == "mysql":
-            r = session.execute("""DELETE P FROM path as p
-                JOIN path AS d ON p.descendant = d.descendant
-                LEFT JOIN path as X
-                    ON x.ancestor = d.ancestor
-                    AND x.descendant = p.ancestor
-                WHERE
-                    d.ancestor = :location_id
-                    AND x.ancestor IS NULL
-            """, {'location_id': self.id})
-            print("RES %s" % r.rowcount)
-        else:
-            subq = session.query(Path.descendant).filter(
-                Path.ancestor == self.id
-            ).subquery()
-            session.query(Path).filter(
-                Path.descendant.in_(subq),
-                ~Path.ancestor.in_(subq)
-            ).delete(synchronize_session=False)
-
-    def _recreate_paths(self, session, location_id, new_location_id):
-        session.execute("""INSERT INTO
-                path (ancestor, descendant, length)
-            SELECT
-                supertree.ancestor,
-                subtree.descendant,
-                supertree.length + subtree.length + 1
-            FROM
-                path as supertree
-            JOIN
-                path as subtree ON subtree.ancestor = :subtree
-            WHERE
-                supertree.descendant = :new_parent_location
-        """, {
-            "subtree": location_id,
-            "new_parent_location": new_location_id
-        })
 
     def _sort_paths(self):
         self.paths.sort(key=lambda path: path.length, reverse=True)
@@ -401,11 +260,9 @@ class Content(Base):
     def parent(self):
         return self.main_location.parent
 
-    def children(self, *args, **kwargs):
-        return self.main_location.children(*args, **kwargs)
-
-    def ancestors(self, *args, **kwargs):
-        return self.main_location.ancestors(*args, **kwargs)
+    @property
+    def lineage(self):
+        return self.main_location.lineage()
 
     def delete(self):
         """
@@ -443,7 +300,7 @@ class Content(Base):
         _del_resource_subtree(session)
 
 
-class ContentType(object):
+class ContentType:
     @declarative.declared_attr
     def __mapper_args__(cls):
         return {'polymorphic_identity': cls.__tablename__}
