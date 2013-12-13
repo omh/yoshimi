@@ -127,12 +127,38 @@ class TestQueryChildren(test.DatabaseTestCase):
 
 
 class TestRepo(test.TestCase):
-    def test_move(self):
-        repo = Repo(test.Mock())
+    @test.patch('yoshimi.repo.MoveOperation', autospec=MoveOperation)
+    def test_move(self, move_class):
+        session = test.Mock()
+        repo = Repo(session)
         subject = test.Mock()
+
         rv = repo.move(subject)
 
         self.assertIsInstance(rv, MoveOperation)
+        move_class.assert_called_once_with(session, subject)
+
+    @test.patch('yoshimi.repo.DeleteOperation', autospec=DeleteOperation)
+    def test_delete(self, delete_class):
+        session = test.Mock()
+        repo = Repo(session)
+        subject = test.Mock()
+
+        repo.delete(subject)
+
+        delete_class.assert_called_once_with(session)
+        delete_class.return_value.delete.assert_called_once_with(subject)
+
+    @test.patch('yoshimi.repo.Query', autospec=Query)
+    def test_query(self, query_class):
+        session = test.Mock()
+        repo = Repo(session)
+        subject = test.Mock()
+
+        rv = repo.query(subject)
+
+        self.assertIsInstance(rv, Query)
+        query_class.assert_called_once_with(session, subject)
 
 
 @test.all_databases
@@ -179,10 +205,10 @@ class TestDeleteOperation(test.DatabaseTestCase):
         self.s.add_all([self.root2, self.child3, self.child4])
         self.s.commit()
 
-        self.path_count = 12
-        self.content_count = 6
-        self.article_count = 2
-        self.folder_count = 4
+        self.path_count = self.s.query(Path).count()
+        self.content_count = self.s.query(Content).count()
+        self.article_count = self.s.query(Article).count()
+        self.folder_count = self.s.query(Folder).count()
 
         self.fut = DeleteOperation(self.s)
 

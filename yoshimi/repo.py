@@ -45,11 +45,9 @@ class Repo(Proxy):
 
     def delete(self, subject):
         op = DeleteOperation(self._proxy)
-        op.delete_content(subject)
+        op.delete(subject)
 
     # @TODO: entities should be *entities to match SQLA Query api
-    # @TODO: should children() use contains_eager on content as we're already
-    # joining in content? Does it make sense to load children without content?
     def query(self, entities):
         """
         Wrapper around SQLAlchemy's :class:`~sqlalchemy.orm.query.Query` class
