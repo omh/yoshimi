@@ -18,7 +18,8 @@ install:
     - python setup.py dev
 
 before_script:
-      - mysql -e 'CREATE DATABASE IF NOT EXISTS yoshimi_test;'
+      - mysql -e 'DROP DATABASE IF EXISTS yoshimi_test;'
+      - mysql -e 'CREATE DATABASE yoshimi_test;'
       - psql -c 'DROP DATABASE IF EXISTS yoshimi_test;' -U postgres;
       - psql -c 'CREATE DATABASE yoshimi_test;' -U postgres
 script:
