@@ -229,7 +229,7 @@ class MoveOperation:
     def _del_non_interconnected_paths(self, session, subject_id):
         """Deletes paths that are not interconnected."""
         if session.bind.dialect.name == "mysql":
-            r = session.execute("""DELETE P FROM path as p
+            r = session.execute("""DELETE p FROM path as p
                 JOIN path AS d ON p.descendant = d.descendant
                 LEFT JOIN path as X
                     ON x.ancestor = d.ancestor
