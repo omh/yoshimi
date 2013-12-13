@@ -84,13 +84,13 @@ class TestConflictPreventionForm(test.TestCase):
 
 
 class TestContentMoveForm(test.TestCase):
-    def test_location_id_is_required(self):
+    def test_content_id_is_required(self):
         form = ContentMoveForm(csrf_enabled=False)
         self.assertFalse(form.validate())
 
     def test_validates(self):
         form = ContentMoveForm(
-            formdata=MultiDict({'parent_location_id': 123}),
+            formdata=MultiDict({'parent_id': 123}),
             csrf_enabled=False
         )
         self.assertTrue(form.validate())

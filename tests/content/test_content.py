@@ -1,57 +1,9 @@
 from yoshimi import test
-from yoshimi.content import Content, Location
+from yoshimi.content import Content
 from .types import get_content
 
 
 class TestContent(test.TestCase):
-    def test_create_root(self):
-        root = Content()
-
-        self.assertEquals(len(root.locations), 1)
-
-    def test_add_location(self):
-        root = Content()
-        root.locations.append(Location())
-
-        self.assertEquals(len(root.locations), 2)
-
-    def test_main_location_set_on_init(self):
-        resource = Content()
-        self.assertTrue(resource.locations[0].is_main)
-
-    def test_get_main_location(self):
-        resource = Content()
-        self.assertIsNotNone(resource.main_location)
-
-    def test_set_main_location(self):
-        main_location = Location()
-        resource = Content()
-        resource.main_location = main_location
-
-        self.assertTrue(resource.main_location == main_location)
-
-    def test_main_location_added_as_location_if_not_already(self):
-        resource = Content()
-        resource.main_location = Location()
-
-        self.assertTrue(len(resource.locations) == 2)
-
-    def test_only_one_main_location(self):
-        resource = Content()
-        resource.locations.append(Location())
-        resource.main_location = Location()
-
-        self.assertFalse(resource.locations[0].is_main)
-        self.assertFalse(resource.locations[1].is_main)
-
-    def test_main_location_throws_exception_when_not_set(self):
-        import sqlalchemy
-        resource = Content()
-        resource.main_location.is_main = False
-
-        with self.assertRaises(sqlalchemy.orm.exc.NoResultFound):
-            resource.main_location
-
     def test_content_has_creator(self):
         user = Content()
         resource = Content(creator=user)
@@ -65,13 +17,39 @@ class TestContent(test.TestCase):
 
         self.assertEqual(len(user.own_content), 2)
 
+    def test_parent(self):
+        c1 = get_content()
+        c2 = get_content(parent=c1, name='c2')
 
-class TestContentDatabase(test.DatabaseTestCase):
-    def test_main_location_is_persisted(self):
-        resource = get_content()
-        resource.locations.append(Location())
-        self.s.add(resource)
-        self.s.commit()
+        self.assertEquals(c2.parent, c1)
 
-        self.assertTrue(resource.locations[0].is_main)
-        self.assertFalse(resource.locations[1].is_main)
+    def test_slugs(self):
+        f1 = get_content(slug='Folder')
+        a1 = get_content(parent=f1, slug='Article1')
+        a2 = get_content(parent=a1, slug='Article2')
+
+        slugs = a2.slugs
+
+        self.assertEqual('Folder', slugs[0])
+        self.assertEqual('Article1', slugs[1])
+        self.assertEqual('Article2', slugs[2])
+
+    def test_lineage(self):
+        root = get_content(name='f1')
+        child1 = get_content(parent=root, name='c1')
+        child2 = get_content(parent=child1, name='c2')
+
+        ancestors = child2.lineage
+
+        self.assertEqual(len(ancestors), 3)
+        self.assertEqual(ancestors[0], root)
+        self.assertEqual(ancestors[1], child1)
+        self.assertEqual(ancestors[2], child2)
+
+    def test_paths_to_root_are_created(self):
+        root = Content()
+        child = Content(root)
+
+        self.assertEquals(len(child.paths), 2)
+        self.assertEquals(child._sorted_paths()[0].length, 1)
+        self.assertEquals(child._sorted_paths()[1].length, 0)

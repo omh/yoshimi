@@ -4,57 +4,57 @@ from pyramid.traversal import ResourceURL
 from zope.interface import implementer
 
 
-def path(request, location, *elements, route=None, **kw):
-    """Generates an absolute URL for a given location and route name
+def path(request, content, *elements, route=None, **kw):
+    """Generates an absolute URL for a content object and route name
 
     Normally you would invoke this function via the request object as
     ``y_path``::
 
-        request.y_path(location)
+        request.y_path(content)
 
     This function is just a light wrapper around
     :meth:`pyramid.request.Request.resource_path`.
 
     :param request: A request object
     :type request: :class:`pyramid.request.Request`
-    :param location: Location to generate URL for
-    :type location: :class:`~yoshimi.content.Location`
+    :param content: Content to generate URL for
+    :type content: :class:`~yoshimi.content.Content`
     :param str route: Route to use when generating the URL. If not provided the
      :attr:`pyramid.request.Request.matched_route.name` will be used.
     :param dict kw: Dict of keywords which are passed onto
      :meth:`pyramid.request.Request.resource_path`
-    :return str: Relative URL to location
+    :return str: Relative URL to content
     """
     route = request.matched_route.name if route is None else route
     return request.resource_path(
-        location, *elements, route_name=route, **kw
+        content, *elements, route_name=route, **kw
     )
 
 
-def url(request, location, *elements, route=None, **kw):
-    """Generates a absolute URL for a given location and route name
+def url(request, content, *elements, route=None, **kw):
+    """Generates a absolute URL for a given content and route name
 
     Normally you would invoke this function via the request object as
     ``y_url``::
 
-        request.y_url(location)
+        request.y_url(content)
 
     This function is just a light wrapper around
     :meth:`pyramid.request.Request.resource_url`.
 
     :param request: A request object
     :type request: :class:`pyramid.request.Request`
-    :param location: Location to generate URL for
-    :type location: :class:`~yoshimi.content.Location`
+    :param content: Content to generate URL for
+    :type content: :class:`~yoshimi.content.Content`
     :param str route: Route to use when generating the URL. If not provided the
      :attr:`pyramid.request.Request.matched_route.name` will be used.
     :param dict kw: Dict of keywords which are passed onto
      :meth:`pyramid.request.Request.resource_url`
-    :return str: Absolute URL to location
+    :return str: Absolute URL to content
     """
     route = request.matched_route.name if route is None else route
     return request.resource_url(
-        location, *elements, route_name=route, **kw
+        content, *elements, route_name=route, **kw
     )
 
 
@@ -63,38 +63,39 @@ class ResourceUrlAdapter(ResourceURL):
     """URL adapter used by Pyramid\'s
     :meth:`~pyramid.request.Request.resource_url` and
     :meth:`~pyramid.request.Request.resource_path` methods to generate
-    URLs/paths for :class:`~yoshimi.content.Location` objects. This class is
+    URLs/paths for :class:`~yoshimi.content.Content` objects. This class is
     not meant to be used directly.
 
     This is a thin wrapper around the default
     :class:`pyramid.traversal.ResourceURL` class in Pyramid. This class ensures
-    that the :class:`~yoshimi.content.Location` is made *Location Aware* (i.e
+    that the :class:`~yoshimi.content.Content` is made *Location Aware* (i.e
     it has __name__ and __parent__ attributes).
     """
-    def __init__(self, location, request):
+    def __init__(self, content, request):
         """
-        :param location: Location to generate URL for
-        :type location: :class:`~yoshimi.content.Location`
+        :param content: Content to generate URL for
+        :type content: :class:`~yoshimi.content.Content`
         :param request: Current request
         :type request: :class:`~pyramid.request.Request`
         """
-        self._make_location_aware(self._slug_tuple(location), location.lineage)
-        super().__init__(location, request)
+        self._make_location_aware(self._slug_tuple(content), content.lineage)
+        super().__init__(content, request)
 
-    def _make_location_aware(self, path_elements, locations):
+    # @TODO: do we need this? Might do due to the last slug being different.
+    def _make_location_aware(self, path_elements, content_list):
         """Generates ``__parent__`` and ``__name__`` attributes for a list
-        representing a :class:`~yoshimi.content.Location` lineage. This makes
-        the list location aware.
+        representing a :class:`~yoshimi.content.Content` lineage. This makes
+        the list content aware.
 
         :param tuple path_elements: Tuple of each element in the path
-        :param list locations: Lineage of a location. Root should be the first
-         item.
+        :param list content: Lineage of a content object. Root should be the
+         first item.
         """
         prev = None
-        for path, location in zip(path_elements, locations):
-            location.__parent__ = prev
-            location.__name__ = path
-            prev = location
+        for path, content in zip(path_elements, content_list):
+            content.__parent__ = prev
+            content.__name__ = path
+            prev = content
 
     def _slug_tuple(self, resource):
         slugs = resource.slugs
@@ -103,14 +104,14 @@ class ResourceUrlAdapter(ResourceURL):
         return slugs
 
 
-class RootFactory():
+class RootFactory:
     """Generates a traversal root factory for Pyramid to use when looking up
     URLs.
 
     This class is responsible for taking a URL and generating a Traversal root
     object that Pyramid then uses match a URL to the
-    :class:`~yoshimi.content.Location` object. The URL is parsed looking for
-    a numeric :class:`~yoshimi.content.Location`. The last numeric value that
+    :class:`~yoshimi.content.Content` object. The URL is parsed looking for
+    a numeric :class:`~yoshimi.content.Content`. The last numeric value that
     is separated by a `-` (dash) is assumed to be the id of the context. E.g::
 
         /news/sports/this-is-an-article-123
@@ -121,10 +122,10 @@ class RootFactory():
 
         /news/sports/this-is-an-article-123/edit
 
-    Only the ID is needed to lookup a :class:`~yoshimi.content.Location`. The
-    rest of the URL is there to make it human and robot (SEO) readable. The
+    Only the ID is needed to lookup a :class:`~yoshimi.content.Content` object.
+    The rest of the URL is there to make it human and robot (SEO) readable. The
     human readable part of the URL is matched against the actual human readable
-    part of the Location and if it doesn't match a 301 Permanent redirect is
+    part of the Content and if it doesn't match a 301 Permanent redirect is
     issued. This allows the human readable URL to change without having to do
     any database queries or keeping track of past URLs.
     """
@@ -180,8 +181,8 @@ class RootFactory():
             return None
 
         root = None
-        for path, location in zip(reversed(path_elements), reversed(contexts)):
-            root = {path: dict(root)} if root else {path: location}
+        for path, content in zip(reversed(path_elements), reversed(contexts)):
+            root = {path: dict(root)} if root else {path: content}
 
         return root
 

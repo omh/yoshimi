@@ -118,10 +118,10 @@ class ContentEditForm:
         """Convenience method to create a new edit form with data from
         a request object."""
         return cls(
-            request.context.content.__class__,
+            request.context.__class__,
             session=request.y_db,
             data=request.POST,
-            obj=request.context.content,
+            obj=request.context,
             csrf_context=request.session,
         )
 
@@ -140,4 +140,4 @@ class LoginForm(BaseForm):
 
 
 class ContentMoveForm(CsrfForm):
-    parent_location_id = HiddenField(validators=[required()])
+    parent_id = HiddenField(validators=[required()])

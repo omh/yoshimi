@@ -8,34 +8,34 @@ class _PathFunctionTests(test.TestCase):
     def setUp(self):
         self.req = test.Mock()
         self.req.matched_route.name = 'route_name'
-        self.location = test.Mock()
+        self.content = test.Mock()
         self.fut = None
 
     def assert_call(self, *args, **kw):
         pass
 
     def test_url_with_default_route(self):
-        self.fut(self.req, self.location)
+        self.fut(self.req, self.content)
         self.assert_call(
-            self.location, route_name='route_name',
+            self.content, route_name='route_name',
         )
 
     def test_url_with_route(self):
-        self.fut(self.req, self.location, route='testroute')
+        self.fut(self.req, self.content, route='testroute')
         self.assert_call(
-            self.location, route_name='testroute',
+            self.content, route_name='testroute',
         )
 
     def test_url_with_elements(self):
-        self.fut(self.req, self.location, 'edit')
+        self.fut(self.req, self.content, 'edit')
         self.assert_call(
-            self.location, ('edit'), route_name='route_name',
+            self.content, ('edit'), route_name='route_name',
         )
 
     def test_url_with_query_params(self):
-        self.fut(self.req, self.location, query={'q1': 'testing'})
+        self.fut(self.req, self.content, query={'q1': 'testing'})
         self.assert_call(
-            self.location, route_name='route_name', query={'q1': 'testing'}
+            self.content, route_name='route_name', query={'q1': 'testing'}
         )
 
 

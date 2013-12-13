@@ -17,7 +17,7 @@
                             id="inlineCheckbox1"
                             value="option1">
                     </td>
-                    <td><a href="${req.y_path(child)}">${child.content.name}</td>
+                    <td><a href="${req.y_path(child)}">${child.name}</td>
                     <td class="tight">03/01/2013 12:12</td>
                     <td class="tight">Ole Morten Halvorsen</td>
                     <td class="tight table-admin-right">

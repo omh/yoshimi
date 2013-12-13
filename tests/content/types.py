@@ -13,8 +13,10 @@ class Folder(ContentType, Content):
 def get_content(*args, **kwargs):
     """Returns a location with all required fields filled in"""
     c = Content(*args, **kwargs)
-    c.name = "This is test content"
-    c.slug = "this-is-a-slug"
+    if not 'name' in kwargs:
+        c.name = "This is test content"
+    if not 'slug' in kwargs:
+        c.slug = "this-is-a-slug"
 
     return c
 

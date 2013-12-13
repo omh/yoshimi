@@ -4,7 +4,7 @@
     <form method="POST" action="" class="pure-form pure-form-stacked">
         <fieldset>
             <legend class="content-header">
-                <span class="content-name">${req.context.content.name}</span>
+                <span class="content-name">${req.context.name}</span>
                 <span class="subtle slug-preview">${req.y_path(req.context)}</span>
             </legend>
 

@@ -111,7 +111,7 @@ class Pagination(object):
 
 
 class BaseQuery(Query):
-    def paginate(self, page, per_page=20, error_out=True):
+    def paginate(self, page, per_page=30, error_out=True):
             """Returns `per_page` items from page `page`.  By default it will
             abort with 404 if no items were found and the page was larger than
             1.  This behavor can be disabled by setting `error_out` to `False`.

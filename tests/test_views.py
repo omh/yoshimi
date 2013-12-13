@@ -16,22 +16,22 @@ class TestMoveView(test.TestCase):
         self.request.POST = MultiDict()
         self.request.method = 'POST'
         self.request.y_path = test.Mock()
+        self.request.y_repo = test.Mock()
         ContentMoveForm.csrf_enabled = False
 
-    def test_validation_error_if_no_location_id_in_form(self):
-        rv = move(self.request)
+    def test_validation_error_if_no_content_id_in_form(self):
+        rv = move(None, self.request)
         self.assertTrue('form_errors' in rv)
 
-    @test.patch('yoshimi.views.Location')
-    def test_moves_location_when_new_parent_id_is_provided(self, Location):
+    def test_moves_content_when_new_parent_id_is_provided(self):
         self.request.y_path.return_value = '/move'
-        self.request.POST['parent_location_id'] = 123
+        self.request.POST['parent_id'] = 123
         self.request.context = test.Mock()
 
-        rv = move(self.request)
+        rv = move(self.request.context, self.request)
 
         self.assertIsInstance(rv, HTTPFound)
-        self.assertTrue(self.request.context.move.called)
+        self.assertTrue(self.request.y_repo.move.called)
 
 
 class TestLoginView(test.TestCase):

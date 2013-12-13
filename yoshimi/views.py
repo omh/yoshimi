@@ -8,7 +8,7 @@
     :license: BSD, see LICENSE for more details.
 """
 from yoshimi.browse import BrowsePolicy
-from yoshimi.content import Location
+from yoshimi.content import Content
 from yoshimi.forms import LoginForm
 from yoshimi.forms import ContentEditForm
 from yoshimi.forms import ContentMoveForm
@@ -17,40 +17,43 @@ from yoshimi.utils import page_number
 from yoshimi.utils import redirect_back
 
 
-def index(request):
+def index(context, request):
     children = LazyPagination(
-        request.y_repo.query(request.context).children().load_content().load_path(),
+        request.y_repo.query(context).children().load_path(),
         page_number(request.GET.get('page', 1))
     )
 
     return {
         'children': children,
-        'can_move': bool(request.context.parent)
+        'can_move': bool(context.parent)
     }
 
 
-def edit(request):
+# @TODO: Not tested properly - was erroring out on request.context.content
+# which doesn't exists anymore
+def edit(context, request):
     form = ContentEditForm.from_request(request)
     if request.method == 'POST' and form.validate():
-        form.populate_obj(request.context.content)
-        request.y_db.add(request.context.content)
-        return redirect_back(request, request.y_path(request.context))
+        form.populate_obj(context)
+        request.y_db.add(context)
+        return redirect_back(request, request.y_path(context))
     return {
         'form': form,
         'back_url': request.GET.get('back', '')
     }
 
 
-def move(request):
+def move(context, request):
     form = ContentMoveForm.from_request(request)
     if request.method == 'POST' and form.validate():
-        new_location = Location.query.get(form.parent_location_id.data)
-        request.context.move(new_location)
-        u = redirect_back(request, request.y_path(request.context))
-        return u
+        request.y_repo.move(context).to(
+            request.y_repo.query(Content).get(form.parent_id.data)
+        )
+        return redirect_back(request, request.y_path(context))
     return {'form_errors': form.errors}
 
 
+# @TODO: not tested properly (integration test). Failed at fetching from repo.
 def browse(request):
     def browse_url(*args, **kwargs):
         args = list(args)
@@ -65,7 +68,7 @@ def browse(request):
 
     policy = BrowsePolicy.get(
         request.GET['policy'],
-        Location.query.get(int(request.GET['originator_id']))
+        request.y_repo.query(Content).get(int(request.GET['originator_id']))
     )
 
     children = request.context.children().paginate(

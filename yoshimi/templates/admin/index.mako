@@ -15,7 +15,7 @@
         <div class="content">
             <div class="pure-g-r main-section border">
                 <div class="pure-u-2-3">
-                    <h1 class="content-header content-name">${req.context.content.name}</h1>
+                    <h1 class="content-header content-name">${req.context.name}</h1>
                     <span class="subtle slug-preview">${req.y_path(req.context)}</span>
                 </div>
                 <div class="pure-u-1-3 controls">

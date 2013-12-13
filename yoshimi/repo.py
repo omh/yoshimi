@@ -9,12 +9,12 @@
     :license: BSD, see LICENSE for more details.
 """
 from functools import partial
+
 from sqlalchemy.orm import (
     joinedload,
-    with_polymorphic,
 )
 from zope.sqlalchemy import mark_changed
-from yoshimi.content import Location
+
 from yoshimi.content import Content
 from yoshimi.content import Path
 from yoshimi.utils import Proxy
@@ -45,7 +45,7 @@ class Repo(Proxy):
 
     def delete(self, subject):
         op = DeleteOperation(self._proxy)
-        op.delete_location(subject)
+        op.delete_content(subject)
 
     # @TODO: entities should be *entities to match SQLA Query api
     # @TODO: should children() use contains_eager on content as we're already
@@ -80,9 +80,8 @@ class Repo(Proxy):
         query and will prevent the all too common `N+1` number of queries
         problem::
 
-            request.y_repo.query(article).children() \\
-            .load_content().load_path() \\
-            .limit(10).ordery_by(Article.title).all()
+            request.y_repo.query(Article).children() \\
+            .load_path().limit(10).ordery_by(Article.title).all()
 
         :param list entities: Entities to query
         :returns: New query instance for `entities`.
@@ -132,18 +131,6 @@ class Query:
         )
         return self
 
-    def load_content(self):
-        self._add_op('load_content', partial(
-            load_content, lambda: self._proxy, self._entities_list[0])
-        )
-        return self
-
-    def load_locations(self):
-        self._add_op('load_locations', partial(
-            load_locations, lambda: self._proxy, self._entities_list[0])
-        )
-        return self
-
     def get_query(self):
         self._compile()
         return self._proxy
@@ -182,32 +169,9 @@ class Query:
 
 def load_path(query_getter, subject):
     query = query_getter()
-    if hasattr(subject, 'paths'):
-        jl = joinedload('paths')
-    else:
-        jl = joinedload('locations', innerjoin=True) \
-            .joinedload('paths')
-
-    jl = jl.joinedload('ancestor_location', innerjoin=True) \
-           .joinedload('content', innerjoin=True)
+    jl = joinedload('paths', innerjoin=True)
 
     return query.options(jl)
-
-
-def load_content(query_getter, subject):
-    query = query_getter()
-    if not hasattr(subject, 'content'):
-        return query
-
-    return query.options(joinedload('content', innerjoin=True))
-
-
-def load_locations(query_getter, subject):
-    query = query_getter()
-    if not hasattr(subject, 'locations'):
-        return query
-
-    return query.options(joinedload('locations', innerjoin=True))
 
 
 def depth(query_getter, levels):
@@ -222,27 +186,19 @@ def children(query_maker, parent, *content_types):
      specify any all content types will be fetched.
     :rtype: :class:`sqlalchemy.orm.query.Query`
     :return: Once query is triggered it will return a list of
-     :class:`.Location` objects.
+     :class:`.Content` objects.
     """
-    q = query_maker(Location).join(
-        Path, Path.descendant == Location.id
+    q = query_maker(Content).with_polymorphic(
+        content_types
     ).join(
-        Content, Content.id == Location.content_id
+        Path, Path.descendant == Content.id
     ).filter(
         Path.ancestor == parent.id,
     )
-
-    if len(content_types) == 1:
-        for type in content_types:
-            q = q.filter(type.id == Content.id)
-
-    types = [t.type for t in content_types]
-    if types:
-        q = q.join(
-            Location.content.of_type(
-                with_polymorphic(Content, content_types, flat=True)
-            )
-        ).filter(Content.type.in_(types))
+    if content_types:
+        q = q.filter(Content.type.in_(
+            [t.__mapper_args__['polymorphic_identity'] for t in content_types]
+        ))
 
     return q
 
@@ -253,14 +209,16 @@ class MoveOperation:
         self._subject = subject
 
     def to(self, new_parent):
-        """Moves a location to under a new location
+        """Moves a content object to a new location
 
-        This will also recursivly move all children of this location.
+        This will also recursivly move all children of this below the content
+        object.
 
         Because this method uses raw queries all objects in the session will
         be expired after calling this method.
 
-        :param Location new_parent: The new parent for this location
+        :param new_parent: The new parent/destination for the move
+        :type new_parent: `yoshimi.content.Content`
         """
         self._del_non_interconnected_paths(self._session, self._subject.id)
         self._recreate_paths(self._session, self._subject.id, new_parent.id)
@@ -277,9 +235,9 @@ class MoveOperation:
                     ON x.ancestor = d.ancestor
                     AND x.descendant = p.ancestor
                 WHERE
-                    d.ancestor = :location_id
+                    d.ancestor = :content_id
                     AND x.ancestor IS NULL
-            """, {'location_id': subject_id})
+            """, {'content_id': subject_id})
             print("RES %s" % r.rowcount)
         else:
             subq = session.query(Path.descendant).filter(
@@ -290,7 +248,7 @@ class MoveOperation:
                 ~Path.ancestor.in_(subq)
             ).delete(synchronize_session=False)
 
-    def _recreate_paths(self, session, subject_id, new_location_id):
+    def _recreate_paths(self, session, subject_id, new_parent_id):
         session.execute("""INSERT INTO
                 path (ancestor, descendant, length)
             SELECT
@@ -302,10 +260,10 @@ class MoveOperation:
             JOIN
                 path as subtree ON subtree.ancestor = :subtree
             WHERE
-                supertree.descendant = :new_parent_location
+                supertree.descendant = :new_parent_id
         """, {
             "subtree": subject_id,
-            "new_parent_location": new_location_id
+            "new_parent_id": new_parent_id
         })
 
 
@@ -313,34 +271,28 @@ class DeleteOperation:
     def __init__(self, session):
         self._session = session
 
-    def delete_location(self, location):
-        """Deletes this location and any children of this location. Any content
-        entries that become orphant will also be deleted.
-
-        Because this method uses raw queries all objects in the session will
-        be expired after calling this method.
+    def delete(self, target):
         """
-        def _del_path_subtree(session, location_id):
-            if session.bind.dialect.name == "mysql":
-                session.execute("""DELETE l2 from location
-                    JOIN path ON path.ancestor = location.id
-                    JOIN location AS l2 ON path.descendant = l2.id
-                    WHERE location.id = :location_id
-                """, {'location_id': location_id})
-            else:
-                subq = session.query(Path.descendant).filter(
-                    Path.ancestor == location_id
-                ).subquery()
-                session.query(Location).filter(
-                    Location.id.in_(subq)
-                ).delete(synchronize_session=False)
+        Need to fetch all content in a subtree, then delete them.
 
-        _del_path_subtree(self._session, location.id)
-
-        # Clean up any content that might have been orphaned
-        self._session.query(Content).filter(
-            ~Content.locations.any()
-        ).delete(synchronize_session=False)
-
-        mark_changed(self._session)
-        self._session.expire_all()
+        Paths will be deleted thanks to cascading deletes.
+        """
+        if self._session.bind.dialect.name == "mysql":
+            self._session.execute("""
+                DELETE content from content
+                JOIN path ON path.descendant = content.id
+                WHERE
+                    path.ancestor = :content_id
+                """, {'content_id': target.id}
+            )
+        else:
+            q = self._session.query(Content).filter(
+                Content.id.in_(
+                    self._session.query(Path.descendant).select_from(
+                        Path
+                    ).filter(
+                        Path.ancestor == target.id
+                    )
+                )
+            )
+            q.delete(synchronize_session=False)

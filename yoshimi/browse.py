@@ -18,10 +18,6 @@ class Policy:
             if self._target.id == possible_destination.parent.id:
                 return self.can_select_self
 
-        target_location_ids = [l.id for l in self._target.content.locations]
-        if possible_destination.id in target_location_ids:
-            return False
-
         return True
 
     @property
