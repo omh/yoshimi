@@ -231,7 +231,7 @@ class MoveOperation:
         if session.bind.dialect.name == "mysql":
             r = session.execute("""DELETE p FROM path as p
                 JOIN path AS d ON p.descendant = d.descendant
-                LEFT JOIN path as X
+                LEFT JOIN path as x
                     ON x.ancestor = d.ancestor
                     AND x.descendant = p.ancestor
                 WHERE
