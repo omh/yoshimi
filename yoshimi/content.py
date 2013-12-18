@@ -136,41 +136,6 @@ class Content(Base):
     def _sort_paths(self):
         self.paths.sort(key=lambda path: path.length, reverse=True)
 
-    #def delete(self):
-        #"""
-        #Need to fetch all content in a subtree, then delete them.
-
-        #Locations will be deleted thanks to cascade deletes.
-        #Paths will be deleted thanks to cascade deletes.
-        #"""
-        #def _del_resource_subtree(session):
-            #if session.bind.dialect.name == "mysql":
-                #session.execute("""
-                    #DELETE content FROM content
-                        #WHERE content.id IN (
-                            #SELECT l2.content_id
-                            #FROM location
-                            #JOIN path ON path.ancestor = location.id
-                            #JOIN location AS l2 ON path.descendant = l2.id
-                            #WHERE location.content_id = :content_id
-                        #);
-                #""", {'content_id': self.id})
-            #else:
-                #L2 = aliased(Location)
-                #q = session.query(L2.content_id).select_from(Location).join(
-                    #Path, Path.ancestor == Location.id
-                #).join(
-                    #L2, L2.id == Path.descendant
-                #).filter(
-                    #Location.content_id == self.id
-                #).subquery()
-                #session.query(Content).filter(
-                    #Content.id.in_(q)
-                #).delete(synchronize_session=False)
-
-        #session = session.object_session(self)
-        #_del_resource_subtree(session)
-
 
 class ContentType:
     @declarative.declared_attr
