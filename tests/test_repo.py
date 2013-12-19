@@ -1,10 +1,11 @@
 from yoshimi import test
 from yoshimi.repo import (
     Repo,
-    Proxy,
     Query,
     MoveOperation,
     DeleteOperation,
+    Trash,
+    _QueryExtensions,
 )
 from yoshimi.content import (
     Path,
@@ -19,33 +20,57 @@ from .content.types import (
 )
 
 
-class TestProxy(test.TestCase):
-    def test_calls_original_method(self):
-        self.assertEqual(self._get_proxy().test(), 'test')
-
-    def test_doesnt_calls_original_method(self):
-        self.assertEqual(self._get_proxy().no_proxy(), 'proxy')
-
-    def test_call_undefined_method(self):
-        with self.assertRaises(AttributeError):
-            self.assertEqual(self._get_proxy().undefined(), 'proxy')
-
-    def _get_proxy(self):
-        class TestObject:
-            def test(self):
-                return 'test'
-
-        class Cut(Proxy):
-            def __init__(self):
-                self._proxy = TestObject()
-
-            def no_proxy(self):
-                return 'proxy'
-
-        return Cut()
-
 # @TODO test children query does not trigger extra query when accessing content
 # type attributes, e.g article.title
+
+
+class TestRepo(test.TestCase):
+    @test.patch('yoshimi.repo.MoveOperation', autospec=MoveOperation)
+    def test_move(self, move_class):
+        session = test.Mock()
+        repo = Repo(test.Mock(), session)
+        subject = test.Mock()
+
+        rv = repo.move(subject)
+
+        self.assertIsInstance(rv, MoveOperation)
+        move_class.assert_called_once_with(session, subject)
+
+    @test.patch('yoshimi.repo.DeleteOperation', autospec=DeleteOperation)
+    def test_delete(self, delete_class):
+        session = test.Mock()
+        repo = Repo(test.Mock(), session)
+        subject = test.Mock()
+
+        repo.delete(subject)
+
+        delete_class.assert_called_once_with(session)
+        delete_class.return_value.delete.assert_called_once_with(subject)
+
+    @test.patch('yoshimi.repo.Query', autospec=Query)
+    def test_query(self, query_class):
+        session = test.Mock()
+        registry = test.Mock()
+        query_extension = test.Mock(autospec=_QueryExtensions)
+        query_extension.methods = {}
+        registry.queryUtility.return_value = query_extension
+        repo = Repo(registry, session)
+        subject = test.Mock()
+
+        rv = repo.query(subject)
+
+        self.assertIsInstance(rv, Query)
+        query_class.assert_called_once_with(session, subject, {})
+
+    @test.patch('yoshimi.repo.Trash', autospec=True)
+    def test_trash(self, trash_class):
+        session = test.Mock()
+        repo = Repo(test.Mock(), session)
+
+        rv = repo.trash()
+
+        self.assertIsInstance(rv, Trash)
+        trash_class.assert_called_once_with(session)
 
 
 class TestQueryEagerLoading(test.QueryCountTestCase):
@@ -53,11 +78,24 @@ class TestQueryEagerLoading(test.QueryCountTestCase):
         id = self.get_id_from_added_object(get_content())
 
         with self.count_queries():
-            fetched_content = Query(self.s, Content).load_path() \
-                .filter_by(id=id).one()
+            fetched_content = Query(self.s, Content) \
+                .load_path().filter_by(id=id).one()
             fetched_content.paths
 
         self.assertQueryCount(1)
+
+
+class TestQuery(test.TestCase):
+    def test_extension(self):
+        # callable(query, *args, **kwargs)
+        session = test.Mock()
+        callable = test.Mock()
+        query = Query(session, None, {'test_func': callable})
+        query.test_func('a').get_query()
+
+        # Unable to assert that callable was called with a lambda so simply
+        # asserting that it was called
+        self.assertEqual(callable.call_count, 1)
 
 
 class TestQueryChildren(test.DatabaseTestCase):
@@ -126,39 +164,23 @@ class TestQueryChildren(test.DatabaseTestCase):
         self.assertEqual(len(children), 6)
 
 
-class TestRepo(test.TestCase):
-    @test.patch('yoshimi.repo.MoveOperation', autospec=MoveOperation)
-    def test_move(self, move_class):
-        session = test.Mock()
-        repo = Repo(session)
-        subject = test.Mock()
+class TestQueryStatus(test.DatabaseTestCase):
+    def setup(self):
+        super().setup()
+        self.a1 = get_article(name='a1')
+        self.a1.status_id = self.a1.status.TRASHED
+        self.a2 = get_article(name='a2')
 
-        rv = repo.move(subject)
+        self.s.add_all((self.a1, self.a2))
+        self.s.flush()
 
-        self.assertIsInstance(rv, MoveOperation)
-        move_class.assert_called_once_with(session, subject)
+        self.query = Query(self.s, self.a1.__class__)
 
-    @test.patch('yoshimi.repo.DeleteOperation', autospec=DeleteOperation)
-    def test_delete(self, delete_class):
-        session = test.Mock()
-        repo = Repo(session)
-        subject = test.Mock()
+    def test_defaults_to_available_only(self):
+        rv = self.query.all()
 
-        repo.delete(subject)
-
-        delete_class.assert_called_once_with(session)
-        delete_class.return_value.delete.assert_called_once_with(subject)
-
-    @test.patch('yoshimi.repo.Query', autospec=Query)
-    def test_query(self, query_class):
-        session = test.Mock()
-        repo = Repo(session)
-        subject = test.Mock()
-
-        rv = repo.query(subject)
-
-        self.assertIsInstance(rv, Query)
-        query_class.assert_called_once_with(session, subject)
+        self.assertEqual(len(rv), 1)
+        self.assertEqual(rv[0], self.a2)
 
 
 @test.all_databases

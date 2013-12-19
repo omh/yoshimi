@@ -7,7 +7,17 @@ from yoshimi.content import Base
 
 
 class TestCase(unittest.TestCase):
-    pass
+    def setup(self):
+        pass
+
+    def setUp(self):
+        self.setup()
+
+    def teardown(self):
+        pass
+
+    def tearDown(self):
+        self.teardown()
 
 
 dbs = []
@@ -26,7 +36,7 @@ def setup_test_db(dsn):
         Base.metadata.create_all()
 
 
-class DatabaseTestCase(unittest.TestCase):
+class DatabaseTestCase(TestCase):
     def setUp(self):
         setup_test_db(os.environ.get('YOSHIMI_TEST_DB'))
 
@@ -35,11 +45,13 @@ class DatabaseTestCase(unittest.TestCase):
         self.connection = db.engine.connect()
         self.s = db.Session(bind=self.connection)
         self.trans = self.connection.begin()
+        super().setUp()
 
     def tearDown(self):
         self.trans.rollback()
         self.s.close()
         self.connection.close()
+        super().tearDown()
 
 
 class QueryCountTestCase(DatabaseTestCase):
