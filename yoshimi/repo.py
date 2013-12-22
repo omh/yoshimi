@@ -110,7 +110,12 @@ class Query(Proxy):
         if name in self.exts:
             return self._apply_extension(name)
 
-        self._compile()
+        # Skip pre checks if we're using query.get() as it throws an exception
+        # if there's existing filters
+        enable_pre_checks = False if name == 'get' else True
+
+        self._compile(enable_pre_checks)
+
         return getattr(self._proxy, name)
 
     def children(self, *content_types):
@@ -161,7 +166,7 @@ class Query(Proxy):
             return self
         return inner
 
-    def _compile(self):
+    def _compile(self, enable_pre_checks=True):
         for _, op_func in self._destructive_op.items():
             self._proxy = op_func()
             break
@@ -169,7 +174,9 @@ class Query(Proxy):
         if self._proxy is None:
             self._proxy = self._default_query()
 
-        self._pre_checks()
+        if enable_pre_checks:
+            self._pre_checks()
+
         for _, op_func in self._ops.items():
             self._proxy = op_func()
 

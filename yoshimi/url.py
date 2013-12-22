@@ -156,6 +156,9 @@ class RootFactory:
         id, requested_url_parts = self._context_id(
             path_elements, separator='-'
         )
+        if not id:
+            return None
+
         context = self._get_context(id)
         if not context:
             return None
@@ -167,10 +170,7 @@ class RootFactory:
         return self._get_root(requested_url_parts, context.lineage)
 
     def _get_context(self, context_id):
-        try:
-            return self.context_getter(context_id)
-        except:
-            return None
+        return self.context_getter(context_id)
 
     def _validate_url(self, requested_url_parts, context_url):
         requested_slug = "/".join(requested_url_parts)

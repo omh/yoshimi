@@ -127,5 +127,4 @@ class TestRootFactory(test.TestCase):
 
         root = url.RootFactory(self.context_getter)(self.request)
 
-        self.context_getter.assert_called_with(None)
         self.assertIsNone(root)

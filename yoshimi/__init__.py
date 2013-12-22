@@ -1,3 +1,4 @@
+from functools import partial
 from yoshimi import auth
 from yoshimi.db import get_db
 from yoshimi import url
@@ -19,7 +20,9 @@ def includeme(config):
 
     config.add_directive('add_query_directive', add_query_directive)
     config.add_resource_url_adapter(ResourceUrlAdapter)
-    config.set_root_factory(RootFactory(content_getter))
+    config.set_root_factory(RootFactory(
+        partial(content_getter, config.registry)
+    ))
 
     config.add_request_method(get_db, name='y_db', reify=True)
     config.add_request_method(repo_maker, name='y_repo', reify=True)
@@ -29,12 +32,10 @@ def includeme(config):
         context_redirect_back_url, name='y_context_back_url', reify=False
     )
 
-    config.include('yoshimi.config')
-
 
 def repo_maker(request):
-    return Repo(request.config.registry, request.y_db)
+    return Repo(request.registry, request.y_db)
 
 
-def content_getter(id):
-    return Repo(get_db()).query(Content).load_path().get(id)
+def content_getter(registry, id):
+    return Repo(registry, get_db()).query(Content).load_path().get(id)
