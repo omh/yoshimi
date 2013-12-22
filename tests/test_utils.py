@@ -6,6 +6,7 @@ from yoshimi.utils import page_number
 from yoshimi.utils import redirect_back
 from yoshimi.utils import context_redirect_back_url
 from yoshimi.utils import safe_redirect
+from yoshimi.utils import Proxy
 
 
 class TestContextRedirectBackUrl(test.TestCase):
@@ -113,3 +114,29 @@ class TestLazyPaginator(test.TestCase):
 
         query.paginate.assert_called_with(4)
         self.assertEqual(total, 30)
+
+
+class TestProxy(test.TestCase):
+    def test_calls_original_method(self):
+        self.assertEqual(self._get_proxy().test(), 'test')
+
+    def test_doesnt_calls_original_method(self):
+        self.assertEqual(self._get_proxy().no_proxy(), 'proxy')
+
+    def test_call_undefined_method(self):
+        with self.assertRaises(AttributeError):
+            self.assertEqual(self._get_proxy().undefined(), 'proxy')
+
+    def _get_proxy(self):
+        class TestObject:
+            def test(self):
+                return 'test'
+
+        class Cut(Proxy):
+            def __init__(self):
+                self._proxy = TestObject()
+
+            def no_proxy(self):
+                return 'proxy'
+
+        return Cut()

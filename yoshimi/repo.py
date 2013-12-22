@@ -10,14 +10,15 @@
 """
 from functools import partial
 
-from sqlalchemy.orm import (
-    joinedload,
-)
+from sqlalchemy.orm import joinedload
 from zope.sqlalchemy import mark_changed
+from zope.interface import implementer
 
 from yoshimi.content import Content
 from yoshimi.content import Path
+from yoshimi.interfaces import IQueryExtensions
 from yoshimi.utils import Proxy
+from yoshimi.services import Trash
 
 
 class Repo(Proxy):
@@ -33,12 +34,13 @@ class Repo(Proxy):
         the session methods. Some methods such as `.query` is overloaded to
         provide convenience methods for dealing with Yoshimi content.
     """
-    def __init__(self, session):
+    def __init__(self, registry, session):
         """
         :param session: SQLAlchemy session
         :type session: :class:`~sqlalchemy.orm.session.Session`
         """
         self._proxy = session
+        self._registry = registry
 
     def move(self, subject):
         return MoveOperation(self._proxy, subject)
@@ -85,19 +87,29 @@ class Repo(Proxy):
         :returns: New query instance for `entities`.
         :rtype: :class:`.Query`
         """
-        return Query(self._proxy, entities)
+        exts = self._registry.queryUtility(
+            IQueryExtensions, default=_QueryExtensions()
+        )
+        return Query(self._proxy, entities, exts.methods)
+
+    def trash(self):
+        return Trash(self._proxy)
 
 
-class Query:
-    def __init__(self, session, entities):
+class Query(Proxy):
+    def __init__(self, session, entities, exts=None):
         self.session = session
         self._entities = entities
         self._entities_list = self._to_list(entities)
         self._proxy = None
+        self.exts = exts if exts else {}
         self._ops = {}
         self._destructive_op = {}
 
     def __getattr__(self, name):
+        if name in self.exts:
+            return self._apply_extension(name)
+
         self._compile()
         return getattr(self._proxy, name)
 
@@ -129,12 +141,28 @@ class Query:
         )
         return self
 
+    def status(self, status_id):
+        self._add_op('status', partial(status, lambda: self._proxy, status_id))
+
+        return self
+
     def get_query(self):
         self._compile()
         return self._proxy
 
+    def _apply_extension(self, name):
+        def inner(*args, **kwargs):
+            self._add_op(
+                name,
+                partial(
+                    self.exts[name], lambda: self._proxy, *args, **kwargs
+                )
+            )
+            return self
+        return inner
+
     def _compile(self):
-        for op_name, op_func in self._destructive_op.items():
+        for _, op_func in self._destructive_op.items():
             self._proxy = op_func()
             break
 
@@ -142,7 +170,7 @@ class Query:
             self._proxy = self._default_query()
 
         self._pre_checks()
-        for op_name, op_func in self._ops.items():
+        for _, op_func in self._ops.items():
             self._proxy = op_func()
 
     def _default_query(self):
@@ -151,6 +179,9 @@ class Query:
     def _pre_checks(self):
         if 'children' in self._destructive_op and not 'depth' in self._ops:
             self.depth(1)
+
+        if not 'status' in self._ops:
+            self.status(Content.status.AVAILABLE)
 
     def _add_op(self, op_name, op_func):
         self._ops[op_name] = op_func
@@ -174,6 +205,10 @@ def load_path(query_getter, subject):
 
 def depth(query_getter, levels):
     return query_getter().filter(Path.length.between(1, levels))
+
+
+def status(query_getter, status_id):
+    return query_getter().filter(Content.status_id == status_id)
 
 
 def children(query_maker, parent, *content_types):
@@ -293,3 +328,8 @@ class DeleteOperation:
                 )
             )
             q.delete(synchronize_session=False)
+
+
+@implementer(IQueryExtensions)
+class _QueryExtensions:
+    methods = {}

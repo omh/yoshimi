@@ -44,7 +44,7 @@ class BrowsePolicy:
         return p
 
 
-class browse_policy(object):
+class browse_policy:
     def __init__(self, policy_name):
         self.policy_name = policy_name
 

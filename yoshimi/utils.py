@@ -1,6 +1,6 @@
 """
     yoshimi.utils
-    ~~~~~~~~~
+    ~~~~~~~~~~~~~
 
     Implements various small helper functions and classes
 
@@ -102,6 +102,7 @@ class LazyPagination(object):
 
 
 class Proxy():
+    """ Simple proxy class that delegates calls to its proxy """
     def __getattr__(self, name):
         return getattr(self._proxy, name)
 

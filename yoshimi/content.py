@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from sqlalchemy import (
     Column,
     ForeignKey,
@@ -47,6 +49,12 @@ class Path(Base):
         ),
     )
 
+Status = namedtuple('status', [
+    'AVAILABLE',
+    'TRASHED',
+    'PENDING_DELETION',
+])
+
 
 class Content(Base):
     """Represents a resource in the content/tree structure
@@ -65,12 +73,19 @@ class Content(Base):
     __name__ = 'Content'
     __editable_fields__ = {'name', 'slug'}
 
+    status = Status(
+        AVAILABLE=0,
+        TRASHED=10,
+        PENDING_DELETION=11,
+    )
+
     id = Column(Integer, primary_key=True)
     creator_id = Column(Integer, ForeignKey('content.id'))
     name = Column(String(1024), nullable=False)
     # @TODO index on type, used by children query.
     type = Column(String(50), nullable=False)
     slug = Column(String(250), nullable=False)
+    status_id = Column(Integer, default=0)
     own_content = relationship(
         'Content',
         backref=backref('creator', remote_side=[id])
@@ -128,6 +143,18 @@ class Content(Base):
             return [p.ancestor_content for p in self._sorted_paths()]
         except IndexError:
             return None
+
+    @property
+    def is_available(self):
+        return self.status_id == self.status.AVAILABLE
+
+    @property
+    def is_trashed(self):
+        return self.status_id == self.status.TRASHED
+
+    @property
+    def is_pending_deletion(self):
+        return self.status_id == self.status.PENDING_DELETION
 
     def _sorted_paths(self):
         self._sort_paths()
