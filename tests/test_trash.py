@@ -1,9 +1,7 @@
 import sqlalchemy
 from yoshimi import test
-from yoshimi.trash import (
-    Trash,
-    TrashContent,
-)
+from yoshimi.entities import TrashContent
+from yoshimi.services import Trash
 from .content.types import get_content
 
 

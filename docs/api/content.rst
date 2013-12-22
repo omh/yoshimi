@@ -8,6 +8,5 @@
   .. autoclass:: Content
     :members:
 
-  .. autoclass:: Location
+  .. autoclass:: ContentType
     :members:
-

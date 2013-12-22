@@ -4,13 +4,13 @@ from yoshimi.repo import (
     Query,
     MoveOperation,
     DeleteOperation,
-    Trash,
     _QueryExtensions,
 )
 from yoshimi.content import (
     Path,
     Content,
 )
+from yoshimi.services import Trash
 from .content.types import (
     Article,
     Folder,
