@@ -153,7 +153,7 @@ engine = None
 
 
 def setup_db(settings, extension=ZopeTransactionExtension):
-    from yoshimi.content import Base
+    from yoshimi.entities import Base
 
     global engine
     engine = engine_from_config(settings, 'sqlalchemy.')

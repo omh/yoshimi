@@ -3,7 +3,7 @@ import os
 import unittest
 from sqlalchemy import event
 from yoshimi import db
-from yoshimi.content import Base
+from yoshimi.entities import Base
 
 
 class TestCase(unittest.TestCase):

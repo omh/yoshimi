@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from sqlalchemy import (
     Column,
     ForeignKey,
@@ -10,8 +9,11 @@ from sqlalchemy.orm import (
     backref,
     relationship,
 )
+from sqlalchemy.ext import declarative
+from yoshimi.db import DeclarativeBase
 
-from yoshimi.content import Base
+
+Base = declarative.declarative_base(cls=DeclarativeBase)
 
 
 class TrashContent(Base):

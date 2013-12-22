@@ -1,5 +1,4 @@
 from collections import namedtuple
-
 from sqlalchemy import (
     Column,
     ForeignKey,
@@ -11,11 +10,7 @@ from sqlalchemy.orm import (
     relationship,
 )
 from sqlalchemy.ext import declarative
-
-from yoshimi.db import DeclarativeBase
-
-
-Base = declarative.declarative_base(cls=DeclarativeBase)
+from yoshimi.entities import Base
 
 
 class Path(Base):
