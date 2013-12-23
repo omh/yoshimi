@@ -1,6 +1,4 @@
-<%namespace name="paginator" file="_paginator.mako"/>
-
-% if children.items:
+{% if children.items %}
     <table class="table-admin">
         <thead>
             <th class="tight input table-admin-no-border"></th>
@@ -10,28 +8,26 @@
             <th class="tight"></th>
         </thead>
         <tbody>
-            % for child in children.items:
+            {% for child in children.items %}
                 <tr>
                     <td class="tight input table-admin-no-border">
                         <input type="checkbox"
                             id="inlineCheckbox1"
                             value="option1">
                     </td>
-                    <td><a href="${req.y_path(child)}">${child.name}</td>
+                    <td><a href="{{ child|y_path }}">{{ child.name }}</td>
                     <td class="tight">03/01/2013 12:12</td>
                     <td class="tight">Ole Morten Halvorsen</td>
                     <td class="tight table-admin-right">
-                        <a class="action" href="${req.y_path(child, 'edit', query={'back': req.path_qs})}">
+                        <a class="action" href="{{ child|y_path_back('edit') }}">
                             Edit
                         </a>
                     </td>
                 </tr>
-            % endfor
+            {% endfor %}
         </tbody>
     </table>
-
-    ${paginator.paginate(children, classes=['pagination-right', 'paginator-attached'])}
-
-% else:
+    {% include 'admin/_paginator.jinja2' %}
+{% else %}
     <p class="muted">No sub items</p>
-% endif
+{% endif %}

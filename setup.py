@@ -15,7 +15,7 @@ requires = [
     'css.pure',
     'passlib',
     'pyramid==1.5a2',
-    'pyramid_mako',
+    'pyramid_jinja2',
     'pyramid_tm',
     'sqlalchemy>=0.9.0b1',
     'wtforms',

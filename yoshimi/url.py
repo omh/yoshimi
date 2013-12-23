@@ -1,3 +1,14 @@
+"""
+    yoshimi.url
+    ~~~~~~~~~~~
+
+    URL, redirect and traversal related functions and classes
+
+    :copyright: (c) 2013 by Ole Morten Halvorsen
+    :license: BSD, see LICENSE for more details.
+"""
+from urllib.parse import urlparse
+from pyramid.httpexceptions import HTTPFound
 from pyramid.httpexceptions import HTTPMovedPermanently
 from pyramid.interfaces import IResourceURL
 from pyramid.traversal import ResourceURL
@@ -5,24 +16,24 @@ from zope.interface import implementer
 
 
 def path(request, content, *elements, route=None, **kw):
-    """Generates an absolute URL for a content object and route name
+    """ Generates an absolute URL for a content object and route name
 
     Normally you would invoke this function via the request object as
     ``y_path``::
 
-        request.y_path(content)
+        request.y_path(context)
 
     This function is just a light wrapper around
-    :meth:`pyramid.request.Request.resource_path`.
+    :meth:`~pyramid.request.Request.resource_path`.
 
     :param request: A request object
-    :type request: :class:`pyramid.request.Request`
+    :type request: :class:`~pyramid.request.Request`
     :param content: Content to generate URL for
     :type content: :class:`~yoshimi.content.Content`
     :param str route: Route to use when generating the URL. If not provided the
-     :attr:`pyramid.request.Request.matched_route.name` will be used.
+     :attr:`~pyramid.request.Request.matched_route.name` will be used.
     :param dict kw: Dict of keywords which are passed onto
-     :meth:`pyramid.request.Request.resource_path`
+     :meth:`~pyramid.request.Request.resource_path`
     :return str: Relative URL to content
     """
     route = request.matched_route.name if route is None else route
@@ -32,24 +43,24 @@ def path(request, content, *elements, route=None, **kw):
 
 
 def url(request, content, *elements, route=None, **kw):
-    """Generates a absolute URL for a given content and route name
+    """ Generates a absolute URL for a given content and route name
 
     Normally you would invoke this function via the request object as
     ``y_url``::
 
-        request.y_url(content)
+        request.y_url(context)
 
     This function is just a light wrapper around
-    :meth:`pyramid.request.Request.resource_url`.
+    :meth:`~pyramid.request.Request.resource_url`.
 
     :param request: A request object
-    :type request: :class:`pyramid.request.Request`
+    :type request: :class:`~pyramid.request.Request`
     :param content: Content to generate URL for
     :type content: :class:`~yoshimi.content.Content`
     :param str route: Route to use when generating the URL. If not provided the
-     :attr:`pyramid.request.Request.matched_route.name` will be used.
+     :attr:`~pyramid.request.Request.matched_route.name` will be used.
     :param dict kw: Dict of keywords which are passed onto
-     :meth:`pyramid.request.Request.resource_url`
+     :meth:`~pyramid.request.Request.resource_url`
     :return str: Absolute URL to content
     """
     route = request.matched_route.name if route is None else route
@@ -58,9 +69,86 @@ def url(request, content, *elements, route=None, **kw):
     )
 
 
+def context_redirect_back(request, context):
+    """ Helper to create a HTTPFound redirect to a URL specified as a GET
+    parameter and fall back to a context's URL if no 'back' GET parameter is
+    specified.
+
+    :param request: Request object
+    :type request: :class:`~pyramid.request.Request`
+    :param context: Context to redirect to if 'back' URL parameter is not
+     specified.
+    :rtype: :class:`~pyramid.httpexceptions.HTTPFound`
+    """
+    return HTTPFound(context_redirect_back_url(request, context))
+
+
+def context_redirect_back_url(request, context):
+    """ Helper to generate a redirect URL specified as a GET parameter and fall
+    back to a context's URL if no 'back' GET parameter is specified.
+
+    :param request: Request object
+    :type request: :class:`~pyramid.request.Request`
+    :param context: Context to redirect to if 'back' URL parameter is not
+     specified.
+    :return string: Redirect URL
+    """
+    return safe_redirect(
+        request, request.GET.get('back', request.y_path(context))
+    )
+
+
+def redirect_back(request, fallback='/', **options):
+    """ Helper to redirect to a URL specified as a GET parameter
+
+    :param request: Request object
+    :type request: :class:`~pyramid.request.Request`
+    :param str fallback: Url to use if 'back' URL parameter is not specified
+    :param dict options: Options that are passed to HTTPFound
+    :return HTTPFound:
+    """
+    back_url = safe_redirect(request, request.GET.get('back', fallback))
+    return HTTPFound(location=back_url, **options)
+
+
+def safe_redirect(request, url, fallback='/'):
+    """ Checks and returns a URL if it is safe to redirect to
+
+    To prevent an potential malicious user from redirecting off to a malicious
+    site we only redirect to URLs that is:
+
+        1. Relative (has no host/domain in them) OR
+        2. Absolute URLs that match current request's host OR
+        3. Absolute URLs who's host is in the `yoshimi.host_whitelist`
+           white list setting.
+
+    :param: Request object
+    :type request: :class:`~pyramid.request.Request`
+    :param str url: URL to check
+    :param str fallback: URL to return if the passed in `url` is not deemed
+     safe
+    """
+    test_url = urlparse(url)
+
+    # Relative url - it's fine
+    if test_url.netloc == '':
+        return url
+
+    # Host/port matches - it's fine
+    ref_url = urlparse(request.url)
+    if test_url.netloc == ref_url.netloc:
+        return url
+
+    whitelist = request.registry.settings.get('yoshimi.host_whitelist', [])
+    if test_url.netloc in whitelist:
+        return url
+
+    return fallback
+
+
 @implementer(IResourceURL)
 class ResourceUrlAdapter(ResourceURL):
-    """URL adapter used by Pyramid\'s
+    """ URL adapter used by Pyramid\'s
     :meth:`~pyramid.request.Request.resource_url` and
     :meth:`~pyramid.request.Request.resource_path` methods to generate
     URLs/paths for :class:`~yoshimi.content.Content` objects. This class is
@@ -81,7 +169,6 @@ class ResourceUrlAdapter(ResourceURL):
         self._make_location_aware(self._slug_tuple(content), content.lineage)
         super().__init__(content, request)
 
-    # @TODO: do we need this? Might do due to the last slug being different.
     def _make_location_aware(self, path_elements, content_list):
         """Generates ``__parent__`` and ``__name__`` attributes for a list
         representing a :class:`~yoshimi.content.Content` lineage. This makes
@@ -105,7 +192,7 @@ class ResourceUrlAdapter(ResourceURL):
 
 
 class RootFactory:
-    """Generates a traversal root factory for Pyramid to use when looking up
+    """ Generates a traversal root factory for Pyramid to use when looking up
     URLs.
 
     This class is responsible for taking a URL and generating a Traversal root
@@ -131,19 +218,20 @@ class RootFactory:
     """
     def __init__(self, context_getter):
         """
-        :param callable context_getter: A callable that takes one argument, an
-         unique id, and returns a context object for that id.
+        :param callable context_getter: A callable that takes one argument, \
+         an unique id, and returns a context object for that id.
+
         """
         self.context_getter = context_getter
 
     def __call__(self, request):
-        """Performs the URL lookup and returns a Traversal root object or None
+        """ Performs the URL lookup and returns a Traversal root object or None
         if no context for the current URL could be found. If a context object
         is found but the human readable part of the URL doesn't match an
-        HTTPMovedPermanently expection is raied is issued.
+        HTTPMovedPermanently exception is raised.
 
         :param request: Current request
-        :type request: `pyramid.request.Request`
+        :type request: :class:`~pyramid.request.Request`
         :raises pyramid.httpexceptions.HTTPMovedPermanently: If the request
          human readable URL didn't match
         :return: None or a dict like object

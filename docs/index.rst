@@ -1,25 +1,24 @@
-.. Yoshimi documentation master file, created by
-   sphinx-quickstart on Sat Nov 16 21:41:16 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Welcome to Yoshimi CMS
+======================
 
-Welcome to Yoshimi's documentation!
-===================================
+Welcome to Yoshimi CMS's documentation.
 
-Contents:
+
+User's Guide
+============
 
 .. toctree::
    :maxdepth: 2
 
 
-API Documentation
-=================
+API Reference
+=============
 
 .. toctree::
-   :maxdepth: 1
-   :glob:
+   :maxdepth: 2
 
-   api/*
+   api
+
 
 Indices and tables
 ==================

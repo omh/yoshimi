@@ -1,2 +1,3 @@
 include *.md
+include *.jinja2
 include admin/static/img *.png *.gif

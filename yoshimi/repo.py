@@ -22,7 +22,7 @@ from yoshimi.services import Trash
 
 
 class Repo(Proxy):
-    """Content repository to easily interact with the CMS content.
+    """Content repository to for interacting with the CMS content.
 
         Normally you wouldn't instantiate this class directly but rather use it
         through the request object like so::
@@ -67,7 +67,7 @@ class Repo(Proxy):
 
         But this will not as limit(10) is a SQLAlchemy method::
 
-            request.y_repo.query(article).limit(1).children()..all()
+            request.y_repo.query(article).limit(1).children().all()
 
         Example of how to fetch 10 articles sorted by the article's title::
 

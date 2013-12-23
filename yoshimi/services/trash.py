@@ -27,7 +27,7 @@ class Trash:
     trash supports two ways of deleting content, 1) a "soft" delete and 2)
     a "hard" delete. A "soft" delete means content will be added to the trash
     and can be restored later. A "hard" delete means the content is marked as
-    pending deleting and will be deleted by a background job.
+    pending deletion and will be deleted by a background job.
 
     When the trash is emptied the content is not deleted right away as
     that is a deferred process that will be done in a background job. This is

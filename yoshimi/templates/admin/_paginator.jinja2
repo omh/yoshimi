@@ -1,0 +1,46 @@
+{% macro button_class(page, children) -%}
+    {% if children.page == page %}
+        "active"
+    {% else %}
+        "ellipsis disabled"
+    {% endif %}
+{%- endmacro %}
+
+<ul class="pure-paginator paginator-attached paginator-right">
+    {% if children.has_prev %}
+        <li>
+        <a class="paginator-item prev" 
+            href="{{ context|y_path(query={'page': children.prev_num}) }}">
+                «
+            </a>
+        </li>
+    {% else %}
+        <li class="disabled"><span class="paginator-item prev">«</span></li>
+    {% endif %}
+    {% for page in children.iter_pages() %}
+        {% if page %}
+            <li class="{{ button_class(page, children) }}">
+                {% if children.page == page %}
+                    <span class="paginator-item">{{ page }}</span>
+                {% else %}
+                <a class="paginator-item" 
+                    href="{{ context|y_path(query={'page': page}) }}">{{ page }}</a>
+                {% endif %}
+            </li>
+        {% else %}
+            <li class="ellipsis disabled"><span class="paginator-item">&hellip;</span></li>
+        {% endif %}
+    {% endfor %}
+    {% if children.has_next %}
+        <li>
+            <a class="paginator-item next"
+                href="{{ context|y_path(query={'page': children.next_num}) }}">
+                »
+            </a>
+        </li>
+    {% else %}
+        <li class="disabled">
+            <span class="paginator-item next" href="#">»</span>
+        </li>
+    {% endif %}
+</ul>

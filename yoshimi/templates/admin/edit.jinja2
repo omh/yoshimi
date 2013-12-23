@@ -1,0 +1,37 @@
+{% extends "admin/layout.jinja2" %}
+
+{% block content %}
+<div class="pure-g-r"><div class="pure-u-2-3 content">
+    <form method="POST" action="" class="pure-form pure-form-stacked">
+        <fieldset>
+            <legend class="content-header">
+                <span class="content-name">{{ context.name }}</span>
+                <span class="subtle slug-preview">{{ context|y_path }}</span>
+            </legend>
+
+            {% if form.errors %}
+                {% include 'admin/_form_validation.jinja2' %}
+            {% endif %}
+
+            {% for field in form %}
+                {% if not field.widget.input_type == 'hidden' %}
+                    <div class="control-group{{ ' error' if field.errors else '' }}">
+                        {{ field.label(class="control-label") }}
+                        <span class="help-inline">This is some helper text</span>
+                        {{ field(class="pure-input-1") }}
+                        {% for error in field.errors %}
+                            <span class="inline-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            {{ form.render_hidden_tags()|safe }}
+            <button type="submit" class="pure-button pure-button-primary">Store</button>
+            <a href="{{ req.y_context_back_url(context) }}"
+               class="pure-button pure-button-cancel"> Cancel
+           </a>
+
+        </fieldset>
+    </form>
+</div></div>
+{% endblock %}

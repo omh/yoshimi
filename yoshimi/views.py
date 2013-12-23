@@ -9,12 +9,19 @@
 """
 from yoshimi.browse import BrowsePolicy
 from yoshimi.content import Content
-from yoshimi.forms import LoginForm
-from yoshimi.forms import ContentEditForm
-from yoshimi.forms import ContentMoveForm
-from yoshimi.utils import LazyPagination
-from yoshimi.utils import page_number
-from yoshimi.utils import redirect_back
+from yoshimi.forms import (
+    LoginForm,
+    ContentEditForm,
+    ContentMoveForm,
+)
+from yoshimi.url import (
+    redirect_back,
+    context_redirect_back
+)
+from yoshimi.utils import (
+    page_number,
+    LazyPagination
+)
 
 
 def index(context, request):
@@ -36,7 +43,7 @@ def edit(context, request):
     if request.method == 'POST' and form.validate():
         form.populate_obj(context)
         request.y_db.add(context)
-        return redirect_back(request, request.y_path(context))
+        return context_redirect_back(request, context)
     return {
         'form': form,
         'back_url': request.GET.get('back', '')
@@ -49,7 +56,7 @@ def move(context, request):
         request.y_repo.move(context).to(
             request.y_repo.query(Content).get(form.parent_id.data)
         )
-        return redirect_back(request, request.y_path(context))
+        return context_redirect_back(request, context)
     return {'form_errors': form.errors}
 
 
