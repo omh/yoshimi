@@ -10,6 +10,8 @@ User's Guide
 .. toctree::
    :maxdepth: 2
 
+   guide
+
 
 API Reference
 =============
@@ -18,11 +20,3 @@ API Reference
    :maxdepth: 2
 
    api
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
