@@ -14,10 +14,10 @@ requires = [
     'js.jquery',
     'css.pure',
     'passlib',
-    'pyramid==1.5a2',
+    'pyramid>=1.5a3',
     'pyramid_jinja2',
     'pyramid_tm',
-    'sqlalchemy>=0.9.0b1',
+    'sqlalchemy>=0.9.0',
     'wtforms',
     'zope.sqlalchemy',
 ]
@@ -38,8 +38,6 @@ docs_extras = [
 dependency_links = [
     # for which==1.1.3py3 - needed by fanstatic
     "https://bitbucket.org/fanstatic/fanstatic/src/default/3rdparty/which/",
-    # For pre-releases of sqlalchemy
-    "https://bitbucket.org/zzzeek/sqlalchemy/downloads/",
 ]
 
 setup(
