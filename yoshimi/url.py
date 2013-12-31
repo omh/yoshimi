@@ -16,7 +16,7 @@ from zope.interface import implementer
 
 
 def path(request, content, *elements, route=None, **kw):
-    """ Generates an absolute URL for a content object and route name
+    """ Generates a relative URL for a content object and route name
 
     Normally you would invoke this function via the request object as
     ``y_path``::
@@ -69,10 +69,10 @@ def url(request, content, *elements, route=None, **kw):
     )
 
 
-def context_redirect_back(request, context):
-    """ Helper to create a HTTPFound redirect to a URL specified as a GET
-    parameter and fall back to a context's URL if no 'back' GET parameter is
-    specified.
+def redirect_back_to_context(request, context):
+    """ Helper to create a HTTPFound redirect to a URL specified as the 'back'
+    GET parameter and fall back to a context's URL if no 'back' GET parameter
+    is specified.
 
     :param request: Request object
     :type request: :class:`~pyramid.request.Request`
@@ -80,12 +80,12 @@ def context_redirect_back(request, context):
      specified.
     :rtype: :class:`~pyramid.httpexceptions.HTTPFound`
     """
-    return HTTPFound(context_redirect_back_url(request, context))
+    return HTTPFound(back_to_context_url(request, context))
 
 
-def context_redirect_back_url(request, context):
-    """ Helper to generate a redirect URL specified as a GET parameter and fall
-    back to a context's URL if no 'back' GET parameter is specified.
+def back_to_context_url(request, context):
+    """ Helper to generate a redirect URL specified as the 'back' GET parameter
+    and fall back to a context's URL if no 'back' GET parameter is specified.
 
     :param request: Request object
     :type request: :class:`~pyramid.request.Request`
@@ -93,13 +93,29 @@ def context_redirect_back_url(request, context):
      specified.
     :return string: Redirect URL
     """
-    return safe_redirect(
+    return safe_redirect_url(
         request, request.GET.get('back', request.y_path(context))
     )
 
 
+def redirect_back_to_parent(request, context):
+    """ Helper to create a HTTPFound redirect to the context's parent.
+
+    If the 'back' GET parameter is specified it will be used instead.
+
+    :param request: Request object
+    :type request: :class:`~pyramid.request.Request`
+    :param context: Context to redirect to it's parent
+    :rtype: :class:`~pyramid.httpexceptions.HTTPFound`
+    """
+    if context.parent:
+        return redirect_back_to_context(request, context.parent)
+    else:
+        return redirect_back(request)
+
+
 def redirect_back(request, fallback='/', **options):
-    """ Helper to redirect to a URL specified as a GET parameter
+    """ Helper to redirect to a URL specified as the 'back' GET parameter
 
     :param request: Request object
     :type request: :class:`~pyramid.request.Request`
@@ -107,11 +123,11 @@ def redirect_back(request, fallback='/', **options):
     :param dict options: Options that are passed to HTTPFound
     :return HTTPFound:
     """
-    back_url = safe_redirect(request, request.GET.get('back', fallback))
+    back_url = safe_redirect_url(request, request.GET.get('back', fallback))
     return HTTPFound(location=back_url, **options)
 
 
-def safe_redirect(request, url, fallback='/'):
+def safe_redirect_url(request, url, fallback='/'):
     """ Checks and returns a URL if it is safe to redirect to
 
     To prevent an potential malicious user from redirecting off to a malicious

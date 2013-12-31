@@ -27,7 +27,7 @@
             {% endfor %}
             {{ form.render_hidden_tags()|safe }}
             <button type="submit" class="pure-button pure-button-primary">Store</button>
-            <a href="{{ req.y_context_back_url(context) }}"
+            <a href="{{ req.y_back_to_context_url(context) }}"
                class="pure-button pure-button-cancel"> Cancel
            </a>
 

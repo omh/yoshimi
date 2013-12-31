@@ -16,7 +16,8 @@ from yoshimi.forms import (
 )
 from yoshimi.url import (
     redirect_back,
-    context_redirect_back
+    redirect_back_to_context,
+    redirect_back_to_parent,
 )
 from yoshimi.utils import (
     page_number,
@@ -43,11 +44,22 @@ def edit(context, request):
     if request.method == 'POST' and form.validate():
         form.populate_obj(context)
         request.y_db.add(context)
-        return context_redirect_back(request, context)
+        return redirect_back_to_context(request, context)
     return {
         'form': form,
         'back_url': request.GET.get('back', '')
     }
+
+
+def delete(context, request):
+    request.y_repo.trash.insert(context)
+    request.session.flash(
+        '{type} ({name}) was added to the trash'.format(
+            type=context.type.title(),
+            name=context.name,
+        ), 'y.ok'
+    )
+    return redirect_back_to_parent(request, context)
 
 
 def move(context, request):
@@ -56,7 +68,7 @@ def move(context, request):
         request.y_repo.move(context).to(
             request.y_repo.query(Content).get(form.parent_id.data)
         )
-        return context_redirect_back(request, context)
+        return redirect_back_to_context(request, context)
     return {'form_errors': form.errors}
 
 

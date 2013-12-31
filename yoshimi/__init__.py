@@ -12,7 +12,7 @@ from yoshimi.templating import (
 from yoshimi.url import (
     url as url_func,  # done to prevent conflicts with url module
     path,
-    context_redirect_back_url,
+    back_to_context_url,
     ResourceUrlAdapter,
     RootFactory
 )
@@ -34,7 +34,7 @@ def includeme(config):
     config.add_request_method(path, name='y_path', reify=False)
     config.add_request_method(url_func, name='y_url', reify=False)
     config.add_request_method(
-        context_redirect_back_url, name='y_context_back_url', reify=False
+        back_to_context_url, name='y_back_to_context_url', reify=False
     )
 
 

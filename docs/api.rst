@@ -37,9 +37,10 @@ URL generation
 
 .. autofunction:: yoshimi.url.path
 .. autofunction:: yoshimi.url.url
-.. autofunction:: yoshimi.url.context_redirect_back
-.. autofunction:: yoshimi.url.redirect_back
-.. autofunction:: yoshimi.url.safe_redirect
+.. autofunction:: yoshimi.url.redirect_back_to_context
+.. autofunction:: yoshimi.url.back_to_context_url
+.. autofunction:: yoshimi.url.redirect_back_to_parent
+.. autofunction:: yoshimi.url.safe_redirect_url
 .. autoclass:: yoshimi.url.ResourceUrlAdapter
   :members:
 .. autoclass:: yoshimi.url.RootFactory

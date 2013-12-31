@@ -4,16 +4,6 @@ from pyramid.httpexceptions import (
     HTTPMovedPermanently
 )
 from yoshimi import test
-from yoshimi.url import (
-    url,
-    path,
-    redirect_back,
-    context_redirect_back,
-    context_redirect_back_url,
-    safe_redirect,
-    ResourceUrlAdapter,
-    RootFactory
-)
 
 
 class _PathFunctionTests(test.TestCase):
@@ -54,6 +44,7 @@ class _PathFunctionTests(test.TestCase):
 class TestPath(_PathFunctionTests):
     def setUp(self):
         super().setUp()
+        from yoshimi.url import path
         self.fut = path
 
     def assert_call(self, *args, **kw):
@@ -63,45 +54,53 @@ class TestPath(_PathFunctionTests):
 class TestUrl(_PathFunctionTests):
     def setUp(self):
         super().setUp()
+        from yoshimi.url import url
         self.fut = url
 
     def assert_call(self, *args, **kw):
         self.req.resource_url.assert_called_with(*args, **kw)
 
 
-class TestContextRedirectBackUrl(test.TestCase):
-    def setUp(self):
+class TestBackToContextUrl(test.TestCase):
+    def setup(self):
+        from yoshimi.url import back_to_context_url
+        self.fut = back_to_context_url
+
         def y_path(context):
             return '/context'
 
         self.req = DummyRequest()
         self.req.y_path = y_path
 
-    @test.patch('yoshimi.url.safe_redirect')
-    def test_with_back_get_param(self, safe_redirect):
+    @test.patch('yoshimi.url.safe_redirect_url', autospec=True)
+    def test_with_back_get_param(self, safe_redirect_url):
         self.req.GET['back'] = '/back'
-        context_redirect_back_url(self.req, 'bla')
-        safe_redirect.assert_called_with(self.req, '/back')
+        self.fut(self.req, self.req)
+        safe_redirect_url.assert_called_with(self.req, '/back')
 
-    @test.patch('yoshimi.url.safe_redirect')
-    def test_without_back_get_param(self, safe_redirect):
-        context_redirect_back_url(self.req, 'bla')
-        safe_redirect.assert_called_with(self.req, '/context')
+    @test.patch('yoshimi.url.safe_redirect_url', autospec=True)
+    def test_without_back_get_param(self, safe_redirect_url):
+        self.fut(self.req, 'bla')
+        safe_redirect_url.assert_called_with(self.req, '/context')
 
 
-class TestContextRedirectBack(test.TestCase):
-    @test.patch('yoshimi.url.context_redirect_back_url', autospec=True)
+class TestRedirectBackToContext(test.TestCase):
+    @test.patch('yoshimi.url.back_to_context_url', autospec=True)
     def test_context_redirect_back(self, url_func_mock):
+        from yoshimi.url import redirect_back_to_context
         request_mock = test.Mock()
         context_mock = test.Mock()
 
-        context_redirect_back(request_mock, context_mock)
+        redirect_back_to_context(context_mock, request_mock)
 
-        url_func_mock.assert_called_once_with(request_mock, context_mock)
+        url_func_mock.assert_called_once_with(context_mock, request_mock)
 
 
 class TestRedirectBack(test.TestCase):
-    def setUp(self):
+    def setup(self):
+        from yoshimi.url import redirect_back
+        self.fut = redirect_back
+
         def y_path(context):
             return '/context'
 
@@ -110,35 +109,61 @@ class TestRedirectBack(test.TestCase):
 
     def test_redirect_back(self):
         self.req.GET['back'] = '/testing'
-        rv = redirect_back(self.req)
+        rv = self.fut(self.req)
 
         self.assertIsInstance(rv, HTTPFound)
         self.assertEqual(rv.location, '/testing')
 
     def test_redirect_back_using_fallback(self):
-        rv = redirect_back(self.req, fallback='/fallback')
+        rv = self.fut(self.req, fallback='/fallback')
         self.assertEqual(rv.location, '/fallback')
 
 
-class TestSafeRedirect(test.TestCase):
-    def setUp(self):
+class TestRedirectBackToParent(test.TestCase):
+    def setup(self):
+        from yoshimi.url import redirect_back_to_parent
+        self.fut = redirect_back_to_parent
+        self.req = DummyRequest()
+
+    @test.patch('yoshimi.url.redirect_back_to_context', autospec=True)
+    def test_redirects_to_parent(self, redirect_func):
+        context = test.Mock()
+        context.parent = test.Mock()
+        self.fut(self.req, context)
+
+        redirect_func.assert_called_once_with(self.req, context.parent)
+
+    @test.patch('yoshimi.url.redirect_back', autospec=True)
+    def test_redirects_to_slash_without_parent(self, redirect_func):
+        context = test.Mock()
+        context.parent = None
+        self.fut(self.req, context)
+
+        redirect_func.assert_called_once_with(self.req)
+
+
+class TestSafeRedirectUrl(test.TestCase):
+    def setup(self):
+        from yoshimi.url import safe_redirect_url
+        self.fut = safe_redirect_url
+
         self.req = DummyRequest()
         self.req.registry.settings = {}
 
     def test_redirect_to_same_host_is_ok(self):
         self.req.url = "http://www.example.com/some-page"
         url = "http://www.example.com/testing"
-        rv = safe_redirect(self.req, url)
+        rv = self.fut(self.req, url)
         self.assertEquals(url, rv)
 
     def test_redirect_to_relative_url_is_ok(self):
         url = "/testing"
-        rv = safe_redirect(self.req, url)
+        rv = self.fut(self.req, url)
         self.assertEquals(url, rv)
 
     def test_redirect_to_different_host_fails(self):
         url = "http://www.example2.com"
-        rv = safe_redirect(self.req, url, fallback='/error')
+        rv = self.fut(self.req, url, fallback='/error')
         self.assertEquals(rv, '/error')
 
     def test_redirect_to_whitelisted_host_is_ok(self):
@@ -148,7 +173,7 @@ class TestSafeRedirect(test.TestCase):
             ]
         }
         url = "http://www.example.com"
-        rv = safe_redirect(self.req, url, fallback='/error')
+        rv = self.fut(self.req, url, fallback='/error')
         self.assertEquals(rv, url)
 
     def test_redirect_to_not_whitelisted_host_fails(self):
@@ -158,12 +183,14 @@ class TestSafeRedirect(test.TestCase):
             ]
         }
         url = "http://www.example.com:81"
-        rv = safe_redirect(self.req, url, fallback='/error')
+        rv = self.fut(self.req, url, fallback='/error')
         self.assertEquals(rv, '/error')
 
 
 class TestResourceUrlAdapter(test.TestCase):
     def test_populates_location_aware_attributes(self):
+        from yoshimi.url import ResourceUrlAdapter
+
         loc1 = test.MagicMock()
         loc2 = test.MagicMock()
         loc3 = test.MagicMock()
@@ -184,6 +211,9 @@ class TestResourceUrlAdapter(test.TestCase):
 
 class TestRootFactory(test.TestCase):
     def setUp(self):
+        from yoshimi.url import RootFactory
+        self.fut = RootFactory
+
         self.request = DummyRequest()
         self.request.matchdict['traverse'] = ("a", "b-1")
         self.request.resource_path = test.Mock()
@@ -201,28 +231,28 @@ class TestRootFactory(test.TestCase):
         self.addCleanup(test.patch.stopall)
 
     def test_returns_resource_root(self):
-        root = RootFactory(self.context_getter)(self.request)
+        root = self.fut(self.context_getter)(self.request)
         self.assertEqual(self.loc2, root['a']['b-1'])
 
     def test_returns_none_without_traverse_match(self):
         self.request.matchdict = None
-        root = RootFactory(self.context_getter)(self.request)
+        root = self.fut(self.context_getter)(self.request)
         self.assertIsNone(root)
 
     def test_returns_none_without_context(self):
-        root = RootFactory(lambda id: None)(self.request)
+        root = self.fut(lambda id: None)(self.request)
         self.assertIsNone(root)
 
     def test_raises_redirect_on_url_mismatch(self):
         self.request.matchdict['traverse'] = ("bla-1",)
         with self.assertRaises(HTTPMovedPermanently) as cm:
-            RootFactory(self.context_getter)(self.request)
+            self.fut(self.context_getter)(self.request)
 
         self.assertEqual(cm.exception.location, '/a/b-1')
 
     def test_returns_resource_root_with_trailing_view(self):
         self.request.matchdict['traverse'] = ('a', 'b-1', 'view')
-        root = RootFactory(self.context_getter)(self.request)
+        root = self.fut(self.context_getter)(self.request)
         self.assertEqual(self.loc2, root['a']['b-1'])
 
     def test_returns_none_with_invalid_url_format(self):
@@ -230,6 +260,6 @@ class TestRootFactory(test.TestCase):
         self.context_getter = test.Mock()
         self.context_getter.return_value = None
 
-        root = RootFactory(self.context_getter)(self.request)
+        root = self.fut(self.context_getter)(self.request)
 
         self.assertIsNone(root)
