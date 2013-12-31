@@ -10,7 +10,9 @@
 """
 from functools import partial
 
+from pyramid.httpexceptions import HTTPNotFound
 from sqlalchemy.orm import joinedload
+from sqlalchemy.orm.exc import NoResultFound
 from zope.sqlalchemy import mark_changed
 from zope.interface import implementer
 
@@ -241,6 +243,27 @@ def children(query_maker, parent, *content_types):
         ))
 
     return q
+
+
+def content_getter(repo, id):
+    """
+    Responsible for taking a unique id to a content object and fetching it from
+    the database.
+
+    Raises a :class:`~pyarmid.httpexceptions.HTTPNotFound` exception if no
+    object is found.
+
+    We avoid the use of get() as SQLAlchemy does not allow get() to be used
+    with filters.
+
+    :param repo: Repository
+    :type repo: :class:`~.Repo`
+    :param id: Unique identifier id of a content object
+    """
+    try:
+        return repo.query(Content).load_path().filter_by(id=id).one()
+    except NoResultFound:
+        raise HTTPNotFound
 
 
 class MoveOperation:

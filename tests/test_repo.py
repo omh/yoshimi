@@ -28,7 +28,7 @@ class TestRepo(test.TestCase):
     @test.patch('yoshimi.repo.MoveOperation', autospec=MoveOperation)
     def test_move(self, move_class):
         session = test.Mock()
-        repo = Repo(test.Mock(), session)
+        repo = get_repo_mock(session=session)
         subject = test.Mock()
 
         rv = repo.move(subject)
@@ -39,7 +39,7 @@ class TestRepo(test.TestCase):
     @test.patch('yoshimi.repo.DeleteOperation', autospec=DeleteOperation)
     def test_delete(self, delete_class):
         session = test.Mock()
-        repo = Repo(test.Mock(), session)
+        repo = get_repo_mock(session=session)
         subject = test.Mock()
 
         repo.delete(subject)
@@ -65,9 +65,9 @@ class TestRepo(test.TestCase):
     @test.patch('yoshimi.repo.Trash', autospec=True)
     def test_trash(self, trash_class):
         session = test.Mock()
-        repo = Repo(test.Mock(), session)
+        repo = get_repo_mock(session=session)
 
-        rv = repo.trash()
+        rv = repo.trash
 
         self.assertIsInstance(rv, Trash)
         trash_class.assert_called_once_with(session)
@@ -183,6 +183,28 @@ class TestQueryStatus(test.DatabaseTestCase):
         self.assertEqual(rv[0], self.a2)
 
 
+class TestContentGetter(test.DatabaseTestCase):
+    def setup(self):
+        super().setup()
+        from yoshimi.repo import content_getter
+        self.fut = content_getter
+
+        self.a1 = get_content(name='a1')
+        self.s.add(self.a1)
+        self.s.flush()
+
+        self.repo = get_repo_mock(session=self.s)
+
+    def test_returns_content_when_found(self):
+        rv = self.fut(self.repo, self.a1.id)
+        self.assertEqual(rv, self.a1)
+
+    def test_raises_404_if_not_found(self):
+        from pyramid.httpexceptions import HTTPNotFound
+        with self.assertRaises(HTTPNotFound):
+            self.fut(self.repo, 999)
+
+
 @test.all_databases
 class TestMoveOperation(test.DatabaseTestCase):
     def test_to(self):
@@ -263,3 +285,19 @@ class TestDeleteOperation(test.DatabaseTestCase):
         self.assertEqual(self.s.query(Content).count(), content_count)
         self.assertEqual(self.s.query(Article).count(), article_count)
         self.assertEqual(self.s.query(Folder).count(), folder_count)
+
+
+def get_repo_mock(registry=None, session=None, query_extensions=None):
+    if not session:
+        session = test.Mock()
+    if not registry:
+        registry = test.Mock()
+    if not query_extensions:
+        query_extensions = {}
+
+    query_extension = test.Mock(autospec=_QueryExtensions)
+    query_extension.methods = query_extensions
+    registry.queryUtility.return_value = query_extension
+    repo = Repo(registry, session)
+
+    return repo
