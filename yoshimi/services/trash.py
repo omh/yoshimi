@@ -40,13 +40,13 @@ class Trash:
 
     Example usage::
 
-        repo.trash.insert(article) # Can be restored by user
+        request.y_repo.trash.insert(article) # Can be restored by user
         # Restore the article and any children it had
-        repo.trash.restore(article)
+        request.y_repo.trash.restore(article)
 
-        repo.trash.insert(article)
+        request.y_repo.trash.insert(article)
         # Empty trash - article can no longer be restored
-        repo.trash.empty()
+        request.y_repo.trash.empty()
     """
     def __init__(self, session):
         """

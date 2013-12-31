@@ -94,6 +94,7 @@ class Repo(Proxy):
         )
         return Query(self._proxy, entities, exts.methods)
 
+    @property
     def trash(self):
         return Trash(self._proxy)
 
