@@ -7,6 +7,8 @@
     :copyright: (c) 2013 by Ole Morten Halvorsen
     :license: BSD, see LICENSE for more details.
 """
+from functools import wraps
+import venusian
 from yoshimi.browse import BrowsePolicy
 from yoshimi.content import Content
 from yoshimi.forms import (
@@ -139,3 +141,64 @@ def logout(request):
     logged_out = request.y_user.logout()
 
     return redirect_back(request, headers=logged_out)
+
+
+def wrap_view(*view_callables_to_wrap):
+    """ Decorator that will wrap a view callable with other view callables and
+    merge the return values. This comes in handy as it allows you to compose
+    a view from many smaller views.
+
+    A simplified example::
+
+        def view1(context, request):
+            return {'view1': 1}
+
+        def view2(context, request):
+            return {'view1': 1}
+
+        @wrap_view(view1, view2)
+        def view3(context, request):
+            return {'view3': 2}
+
+        The return value of view3 when called will be the result of merging all
+        the view's return value::
+
+            {'view1': 1, 'view2': 2, 'view3': 3}
+
+        This is equivalent of doing the following::
+
+            rv = view1(context, request)
+            rv.update(view2(context, request))
+            rv.update(view3(context, request))
+
+    This decorator assumes the return value of a view callable will be a dict.
+    You can therefor only use it with view callable that returns a dict.
+
+    The view callables will be given the same arguments as the decorated view.
+    This means either a request or a context and a request.
+
+    :param view_callables_to_wrap: One or more view callable to call before
+     calling the decorated function.
+    """
+    def actual_decorator(decorated_function):
+        decorated_function.__yoshimi_should_wrap_view__ = False
+
+        @wraps(decorated_function)
+        def _inner(*args, **kwargs):
+            if decorated_function.__yoshimi_should_wrap_view__:
+                rv = {}
+                for view in view_callables_to_wrap:
+                    rv.update(view(*args, **kwargs))
+                rv.update(decorated_function(*args, **kwargs))
+                return rv
+            else:
+                return decorated_function(*args, **kwargs)
+
+        def venusian_callback(scanner, name, ob):
+            decorated_function.__yoshimi_should_wrap_view__ = True
+
+        venusian.attach(_inner, venusian_callback)
+
+        return _inner
+
+    return actual_decorator

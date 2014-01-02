@@ -76,3 +76,35 @@ class TestLogoutView:
     def test_clears_session(self):
         logout(self.request)
         assert len(self.request.session) == 0
+
+
+class TestWrapView(test.TestCase):
+    def setup(self):
+        from yoshimi.views import wrap_view
+
+        def view1():
+            return {'view1': 1}
+
+        def view2():
+            return {'view2': 1}
+
+        @wrap_view(view1, view2)
+        def view3():
+            return {'view3': 1}
+
+        self.fut = view3
+
+    def test_no_wrap_when_not_activated_by_venusian_scan(self):
+        rv = self.fut()
+
+        assert 'view1' not in rv
+        assert 'view2' not in rv
+        assert 'view3' in rv
+
+    def test_wraps_when_activated_by_venusian_scan(self):
+        self.fut.__wrapped__.__yoshimi_should_wrap_view__ = True
+        rv = self.fut()
+
+        assert 'view1' in rv
+        assert 'view2' in rv
+        assert 'view3' in rv
