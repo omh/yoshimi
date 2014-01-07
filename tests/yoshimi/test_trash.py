@@ -50,6 +50,14 @@ class TestTrash(DatabaseTestCase):
         assert self.c2.is_trashed is True
         assert self.c3.is_trashed is True
 
+    def test_count(self):
+        self.trash.insert(self.c3)
+        self.assertEqual(self.trash.count(), 1)
+
+    def test_items(self):
+        self.trash.insert(self.c2)
+        self.assertEqual(2, len(self.trash.items().all()))
+
     def test_empty(self):
         self.trash.insert(self.c3)
 

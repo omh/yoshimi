@@ -136,6 +136,11 @@ a {
     margin-bottom: 0.3em;
 }
 
+.trash {
+    border-top: $border-color;
+    background-color: #333;
+    padding: $padding;
+}
 
 .control-group.error {
     color: #b94a48;

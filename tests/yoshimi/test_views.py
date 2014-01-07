@@ -10,6 +10,23 @@ from yoshimi.views import move
 from tests.yoshimi import Mock
 
 
+class TestDeleteView:
+    def setup(self):
+        from yoshimi.views import delete
+        self.fut = delete
+
+        self.req = test.Mock()
+        self.context = test.Mock()
+
+    @test.patch('yoshimi.views.redirect_back_to_parent', autospec=True)
+    def test_delete(self, redirect_func):
+        self.fut(self.context, self.req)
+
+        self.req.y_repo.trash.insert.assert_called_once_with(self.context)
+        redirect_func.assert_called_once_with(self.req, self.context)
+        assert self.req.session.flash.call_count == 1
+
+
 class TestMoveView:
     def setup(self):
         self.request = testing.DummyRequest()

@@ -1,4 +1,6 @@
 from functools import partial
+import pyramid_jinja2
+import pyramid_jinja2.filters
 from yoshimi import auth
 from yoshimi.db import get_db
 from yoshimi.config import add_query_directive
@@ -39,12 +41,17 @@ def includeme(config):
 
 
 def setup_template(config):
-    config.include('pyramid_jinja2')
+    config.include(pyramid_jinja2)
     config.add_jinja2_search_path('yoshimi:templates')
     config.get_jinja2_environment().filters.update({
         'y_url': url_filter,
         'y_path': path_filter,
         'y_path_back': path_back_filter,
+        'model_url': pyramid_jinja2.filters.model_url_filter,
+        'route_url': pyramid_jinja2.filters.route_url_filter,
+        'route_path': pyramid_jinja2.filters.route_path_filter,
+        'static_url': pyramid_jinja2.filters.static_url_filter,
+        'static_path': pyramid_jinja2.filters.static_path_filter,
     })
 
 

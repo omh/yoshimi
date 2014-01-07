@@ -1,0 +1,62 @@
+{% extends "admin/layout.jinja2" %}
+
+{% block content %}
+<div class="pure-g-r main-section border">
+    <div class="pure-u-2-3">
+        <h1 class="content-header content-name">Trash</h1>
+    </div>
+    <div class="pure-u-1-3 controls">
+        <form method="post" action="{{ 'y.admin.trash.empty'|route_path }} ">
+            <button class="pure-button pure-button-error
+                {{ 'pure-button-disabled' if not trash_count() else '' }}">
+                Empty
+            </button>
+        </form>
+    </div>
+</div>
+
+<form method="post" action="{{ 'y.admin.trash.restore'|route_path }}">
+{% if trash_contents.items %}
+    <table class="table-admin">
+        <thead>
+            <th class="tight input table-admin-no-border"></th>
+            <th>Name</th>
+            <th>Trashed on</th>
+            <th>Trashed by</th>
+        </thead>
+        <tbody>
+            {% for item in trash_contents.items %}
+                <tr>
+                    <td class="tight input table-admin-no-border">
+                        <input type="checkbox"
+                            {% if not can_select(item) %}
+                                disabled="disabled"
+                                title="Parent is not available - can not restore"
+                            {% endif %}
+                           name="trash_item_id"
+                           value="{{ item.content_id }}">
+                    </td>
+                    <td>
+                        {{ item.content.name }}<br />
+                        {{ req.resource_path(item.content) }}
+                    </td>
+                    <td class="tight">{{ item.created_at }}</td>
+                    <td class="tight">Ole Morten Halvorsen</td>
+                </tr>
+            {% endfor %}
+        <tbody>
+    </table>
+    {% import 'admin/_paginator.jinja2' as paginator %}
+    {% call(page) paginator.paginate(trash_contents) %}
+        {{ req.current_route_path(_query={'page': page}) }}
+    {% endcall %}
+
+{% else %}
+    <p class="muted">The trash is empty</p>
+{% endif %}
+<button class="pure-button pure-button" name="action" value="restore">
+    Restore
+</button>
+</form>
+
+{% endblock %}

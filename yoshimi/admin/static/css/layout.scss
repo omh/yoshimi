@@ -20,6 +20,14 @@ $padding: 30px;
     float: right;
 }
 
+.trash {
+    position: fixed;
+    bottom: 0;
+    box-sizing: border-box;
+    width: 300px;
+    padding: 1em;
+}
+
 @media (max-width: 867px) {
     #layout {
         padding-left: $nav-medium-width;

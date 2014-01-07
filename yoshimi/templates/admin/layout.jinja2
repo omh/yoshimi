@@ -16,12 +16,36 @@
     {% block feedback %}
     {% endblock %}
     {% block flash %}
+        {% import 'admin/_flash.jinja2' as flash %}
         {% if req.session.peek_flash('y.errors') %}
-            {% include '_flash.jinja2' %}
+            {{ flash.message(req.session.pop_flash('y.errors'), 'error') }}
+        {% elif req.session.peek_flash('y.ok') %}
+            {{ flash.message(req.session.pop_flash('y.ok'), 'ok') }}
         {% endif %}
     {% endblock %}
 
-    {% block content %}
-    {% endblock %}
+    <div class="pure-g-r" id="layout">
+        {% block leftnav %}
+            <div class="pure-u" id="nav">
+                <div class="inner-col">
+                    <label>Library</label>
+                    <div class="tree library"></div>
+                    <label>Filters</label>
+                    <div class="tree recent"></div>
+                </div>
+                <div class="trash">
+                    <a href="{{ 'y.admin.trash.index'|route_url }}">
+                        Trash <em>({{ trash_count() if trash_count() else "empty" }})</em>
+                    </a>
+                </div> 
+            </div>
+        {% endblock %}
+
+        <div class="pure-u-1" id="main">
+            <div class="content">
+                {% block content %} {% endblock %}
+            </div>
+        </div>
+    </div>
 </body>
 </html>

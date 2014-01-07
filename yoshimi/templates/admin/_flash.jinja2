@@ -1,0 +1,9 @@
+{% macro message(messages, class) -%}
+    {% for msg in messages %}
+        <div class="alert alert-block alert-{{ class }}">
+            <button type="button" class="close"
+                    data-dismiss="alert">&times;</button>
+            <p>{{ msg }}</p>
+        </div>
+    {% endfor %}
+{%- endmacro %}

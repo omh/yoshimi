@@ -54,3 +54,17 @@ class TestProxy:
                 return 'proxy'
 
         return Cut()
+
+
+class TestCacheFunc(test.TestCase):
+    def test_func_only_called_once(self):
+        from yoshimi.utils import cache_func
+        func = test.Mock()
+        func.return_value = 'string'
+        new_func = cache_func(func)
+        rv = new_func()
+        rv2 = new_func()
+
+        func.assert_called_once_with()
+        self.assertEquals(rv, 'string')
+        self.assertEquals(rv2, 'string')

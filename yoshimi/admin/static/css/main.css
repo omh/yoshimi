@@ -104,6 +104,11 @@ a {
   margin-top: 0.3em;
   margin-bottom: 0.3em; }
 
+.trash {
+  border-top: #c8c8c8;
+  background-color: #333;
+  padding: 30px; }
+
 .control-group.error {
   color: #b94a48; }
   .control-group.error input, .control-group.error textarea {
@@ -225,6 +230,11 @@ a {
   margin-top: 0.3em;
   margin-bottom: 0.3em; }
 
+.trash {
+  border-top: #c8c8c8;
+  background-color: #333;
+  padding: 30px; }
+
 .control-group.error {
   color: #b94a48; }
   .control-group.error input, .control-group.error textarea {
@@ -280,6 +290,13 @@ a {
 
 .controls {
   float: right; }
+
+.trash {
+  position: fixed;
+  bottom: 0;
+  box-sizing: border-box;
+  width: 300px;
+  padding: 1em; }
 
 @media (max-width: 867px) {
   #layout {
