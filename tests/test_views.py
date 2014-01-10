@@ -31,7 +31,7 @@ class TestMoveView:
         rv = move(self.request.context, self.request)
 
         assert isinstance(rv, HTTPFound)
-        assert self.request.y_repo.move.called == True
+        assert self.request.y_repo.move.called is True
 
 
 class TestLoginView:

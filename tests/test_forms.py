@@ -6,7 +6,6 @@ from wtforms.fields import TextField
 from yoshimi.forms import ConflictPreventionForm
 from yoshimi.forms import ContentMoveForm
 from yoshimi.forms import CsrfForm
-from yoshimi import test
 
 
 class Dummy:
@@ -33,18 +32,20 @@ class TestCsrfForm:
     def test_raises_401_when_csrf_mismatch(self):
         self.request.POST['csrf_token'] = 'abc'
         with pytest.raises(HTTPUnauthorized):
-            form = CsrfForm(self.request.POST, csrf_context=self.request.session)
+            form = CsrfForm(
+                self.request.POST, csrf_context=self.request.session
+            )
             form.validate()
 
     def test_form_validates_when_csrf_matches(self):
         self.request.POST['csrf_token'] = 'abc'
         self.request.session.get_csrf_token = lambda: 'abc'
         form = CsrfForm(self.request.POST, csrf_context=self.request.session)
-        assert form.validate() == True
+        assert form.validate() is True
 
     def test_no_csrf_check_when_disabled(self):
         form = CsrfForm(self.request.POST, csrf_enabled=False)
-        assert form.validate() == True
+        assert form.validate() is True
 
 
 class TestConflictPreventionForm:
@@ -57,14 +58,13 @@ class TestConflictPreventionForm:
             obj=self.dummy,
             csrf_enabled=False
         )
-
         form = DummyForm(
             formdata=MultiDict({'cp_token': form.cp_token.data}),
             obj=self.dummy,
             csrf_enabled=False
         )
 
-        assert form.validate() == True
+        assert form.validate() is True
 
     def test_validation_fails_when_data_is_outdated(self):
         form = DummyForm(
@@ -72,26 +72,24 @@ class TestConflictPreventionForm:
             obj=self.dummy,
             csrf_enabled=False
         )
-
         self.dummy.a = "data changed"
-
         form = DummyForm(
             formdata=MultiDict({'cp_token': form.cp_token.data}),
             obj=self.dummy,
             csrf_enabled=False
         )
 
-        assert form.validate() == False
+        assert form.validate() is False
 
 
 class TestContentMoveForm:
     def test_content_id_is_required(self):
         form = ContentMoveForm(csrf_enabled=False)
-        assert form.validate() == False
+        assert form.validate() is False
 
     def test_validates(self):
         form = ContentMoveForm(
             formdata=MultiDict({'parent_id': 123}),
             csrf_enabled=False
         )
-        assert form.validate() == True
+        assert form.validate() is True

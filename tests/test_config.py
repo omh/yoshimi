@@ -1,6 +1,4 @@
 from pyramid.config import Configurator
-
-from yoshimi import test
 from yoshimi.interfaces import IQueryExtensions
 from yoshimi.config import add_query_directive
 

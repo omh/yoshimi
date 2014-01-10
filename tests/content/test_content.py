@@ -1,4 +1,3 @@
-from yoshimi import test
 from yoshimi.content import Content
 from .types import get_content
 
