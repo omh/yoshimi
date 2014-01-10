@@ -5,7 +5,7 @@ from yoshimi.interfaces import IQueryExtensions
 from yoshimi.config import add_query_directive
 
 
-class ConfigTest(test.TestCase):
+class ConfigTest:
     def _makeConfig(*args, **kwargs):
         config = Configurator(*args, **kwargs)
         return config
@@ -17,4 +17,4 @@ class ConfigTest(test.TestCase):
         add_query_directive(config, 'foo', callable)
 
         exts = config.registry.getUtility(IQueryExtensions)
-        self.assertTrue('foo' in exts.methods)
+        assert 'foo' in exts.methods

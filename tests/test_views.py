@@ -10,8 +10,8 @@ from yoshimi.views import move
 from yoshimi import test
 
 
-class TestMoveView(test.TestCase):
-    def setUp(self):
+class TestMoveView:
+    def setup(self):
         self.request = testing.DummyRequest()
         self.request.POST = MultiDict()
         self.request.method = 'POST'
@@ -21,7 +21,7 @@ class TestMoveView(test.TestCase):
 
     def test_validation_error_if_no_content_id_in_form(self):
         rv = move(None, self.request)
-        self.assertTrue('form_errors' in rv)
+        assert 'form_errors' in rv
 
     def test_moves_content_when_new_parent_id_is_provided(self):
         self.request.y_path.return_value = '/move'
@@ -30,12 +30,12 @@ class TestMoveView(test.TestCase):
 
         rv = move(self.request.context, self.request)
 
-        self.assertIsInstance(rv, HTTPFound)
-        self.assertTrue(self.request.y_repo.move.called)
+        assert isinstance(rv, HTTPFound)
+        assert self.request.y_repo.move.called == True
 
 
-class TestLoginView(test.TestCase):
-    def setUp(self):
+class TestLoginView:
+    def setup(self):
         self.request = testing.DummyRequest()
         self.request.POST = MultiDict(
             {'email': 'testing@example.com',
@@ -48,31 +48,31 @@ class TestLoginView(test.TestCase):
         self.request.y_user.login.return_value = {'A': 2}
         rv = login(self.request)
 
-        self.assertIsInstance(rv, HTTPFound)
+        assert isinstance(rv, HTTPFound)
 
     def test_sets_csrf_in_session_on_successful_login(self):
         self.request.y_user.login.return_value = {'A': 2}
         login(self.request)
 
-        self.assertTrue('_csrft_' in self.request.session)
+        assert '_csrft_' in self.request.session
 
     def test_returns_form_on_failed_login(self):
         self.request.y_user.login.return_value = False
         rv = login(self.request)
 
-        self.assertIsInstance(rv['form'], BaseForm)
+        assert isinstance(rv['form'], BaseForm)
 
 
-class TestLogoutView(test.TestCase):
-    def setUp(self):
+class TestLogoutView:
+    def setup(self):
         self.request = testing.DummyRequest()
         self.request.session['_csrft_'] = 'some token'
         self.request.y_user = test.Mock(spec_set=AuthCoordinator)
         self.request.y_user.logout.return_value = {}
 
     def test_returns_redirect(self):
-        self.assertIsInstance(logout(self.request), HTTPFound)
+        assert isinstance(logout(self.request), HTTPFound)
 
     def test_clears_session(self):
         logout(self.request)
-        self.assertEqual(len(self.request.session), 0)
+        assert len(self.request.session) == 0

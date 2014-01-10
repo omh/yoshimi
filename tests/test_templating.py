@@ -1,10 +1,8 @@
 from yoshimi import test
 
 
-class TestTemplateFilters(test.TestCase):
+class TestTemplateFilters:
     def setup(self):
-        super().setup()
-
         self.context = test.Mock()
         self.request_mock = test.Mock()
         self.request_mock.path_qs = '/a'
@@ -13,7 +11,8 @@ class TestTemplateFilters(test.TestCase):
         self.get_request_mock = get_request_mock.start()
         self.get_request_mock.return_value = self.request_mock
 
-        self.addCleanup(test.patch.stopall)
+    def teardown(self):
+        test.patch.stopall()
 
     @test.patch('yoshimi.templating.url', autospec=True)
     def test_url_filter(self, url_mock):

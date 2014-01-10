@@ -1,3 +1,4 @@
+import pytest
 from yoshimi import test
 from yoshimi.repo import (
     Repo,
@@ -24,7 +25,7 @@ from .content.types import (
 # type attributes, e.g article.title
 
 
-class TestRepo(test.TestCase):
+class TestRepo:
     @test.patch('yoshimi.repo.MoveOperation', autospec=MoveOperation)
     def test_move(self, move_class):
         session = test.Mock()
@@ -33,7 +34,7 @@ class TestRepo(test.TestCase):
 
         rv = repo.move(subject)
 
-        self.assertIsInstance(rv, MoveOperation)
+        assert isinstance(rv, MoveOperation)
         move_class.assert_called_once_with(session, subject)
 
     @test.patch('yoshimi.repo.DeleteOperation', autospec=DeleteOperation)
@@ -59,7 +60,7 @@ class TestRepo(test.TestCase):
 
         rv = repo.query(subject)
 
-        self.assertIsInstance(rv, Query)
+        assert isinstance(rv, Query)
         query_class.assert_called_once_with(session, subject, {})
 
     @test.patch('yoshimi.repo.Trash', autospec=True)
@@ -69,7 +70,7 @@ class TestRepo(test.TestCase):
 
         rv = repo.trash
 
-        self.assertIsInstance(rv, Trash)
+        assert isinstance(rv, Trash)
         trash_class.assert_called_once_with(session)
 
 
@@ -82,10 +83,10 @@ class TestQueryEagerLoading(test.QueryCountTestCase):
                 .load_path().filter_by(id=id).one()
             fetched_content.paths
 
-        self.assertQueryCount(1)
+        self.assert_query_count_is(1)
 
 
-class TestQuery(test.TestCase):
+class TestQuery:
     def test_extension(self):
         # callable(query, *args, **kwargs)
         session = test.Mock()
@@ -95,12 +96,12 @@ class TestQuery(test.TestCase):
 
         # Unable to assert that callable was called with a lambda so simply
         # asserting that it was called
-        self.assertEqual(callable.call_count, 1)
+        assert callable.call_count == 1
 
 
 class TestQueryChildren(test.DatabaseTestCase):
-    def setUp(self):
-        super().setUp()
+    def setup(self):
+        super().setup()
         # - root
             # - - article 1
             # - - article 2
@@ -125,43 +126,43 @@ class TestQueryChildren(test.DatabaseTestCase):
         children = self.query.children() \
             .order_by(Content.id).all()
 
-        self.assertEquals(len(children), 4)
-        self.assertEquals(children[0], self.a1)
-        self.assertEquals(children[1], self.a2)
-        self.assertEquals(children[2], self.f1)
-        self.assertEquals(children[3], self.f2)
+        assert len(children) == 4
+        assert children[0] == self.a1
+        assert children[1] == self.a2
+        assert children[2] == self.f1
+        assert children[3] == self.f2
 
     def test_filter_children_by_entity_type(self):
         children = self.query.children(Folder). \
             order_by(Folder.id).all()
 
-        self.assertEquals(len(children), 2)
-        self.assertEquals(children[0], self.f1)
-        self.assertEquals(children[1], self.f2)
+        assert len(children) == 2
+        assert children[0] == self.f1
+        assert children[1] == self.f2
 
     def test_filter_children_with_two_entity_types(self):
         children = self.query.children(Folder, Article).all()
 
-        self.assertEquals(len(children), 4)
+        assert len(children) == 4
 
     def test_filter_children_on_attribute(self):
         a1 = self.query.children(Article).filter(
             Article.title == 'a1 title'
         ).one()
 
-        self.assertEqual(a1.title, 'a1 title')
+        assert a1.title == 'a1 title'
 
     def test_filter_children_on_content_attribute(self):
         a1 = self.query.children(Article).filter(
             Content.name == 'a1'
         ).one()
 
-        self.assertEqual(a1, self.a1)
+        assert a1 == self.a1
 
     def test_children_with_depth_of_two(self):
         children = self.query.children(Folder, Article).depth(2).all()
 
-        self.assertEqual(len(children), 6)
+        assert len(children) == 6
 
 
 class TestQueryStatus(test.DatabaseTestCase):
@@ -179,8 +180,8 @@ class TestQueryStatus(test.DatabaseTestCase):
     def test_defaults_to_available_only(self):
         rv = self.query.all()
 
-        self.assertEqual(len(rv), 1)
-        self.assertEqual(rv[0], self.a2)
+        assert len(rv) == 1
+        assert rv[0] == self.a2
 
 
 class TestContentGetter(test.DatabaseTestCase):
@@ -197,11 +198,11 @@ class TestContentGetter(test.DatabaseTestCase):
 
     def test_returns_content_when_found(self):
         rv = self.fut(self.repo, self.a1.id)
-        self.assertEqual(rv, self.a1)
+        assert rv == self.a1
 
     def test_raises_404_if_not_found(self):
         from pyramid.httpexceptions import HTTPNotFound
-        with self.assertRaises(HTTPNotFound):
+        with pytest.raises(HTTPNotFound):
             self.fut(self.repo, 999)
 
 
@@ -217,12 +218,12 @@ class TestMoveOperation(test.DatabaseTestCase):
         move = MoveOperation(self.s, subject)
         move.to(new_parent)
 
-        self.assertEqual(subject.parent, new_parent)
+        assert subject.parent == new_parent
 
 
 @test.all_databases
 class TestDeleteOperation(test.DatabaseTestCase):
-    def setUp(self):
+    def setup(self):
         """
         - root [main, folder]
           - child1 [loc: 1, main, article]
@@ -235,7 +236,7 @@ class TestDeleteOperation(test.DatabaseTestCase):
         article count: 2
         folder count: 4
         """
-        super().setUp()
+        super().setup()
 
         self.root = get_folder(name='r1')
         self.child1 = get_article(self.root, name='a1')
@@ -281,10 +282,10 @@ class TestDeleteOperation(test.DatabaseTestCase):
             article_count=0,
             folder_count=0,
     ):
-        self.assertEqual(self.s.query(Path).count(), path_count)
-        self.assertEqual(self.s.query(Content).count(), content_count)
-        self.assertEqual(self.s.query(Article).count(), article_count)
-        self.assertEqual(self.s.query(Folder).count(), folder_count)
+        assert self.s.query(Path).count() == path_count
+        assert self.s.query(Content).count() == content_count
+        assert self.s.query(Article).count() == article_count
+        assert self.s.query(Folder).count() == folder_count
 
 
 def get_repo_mock(registry=None, session=None, query_extensions=None):

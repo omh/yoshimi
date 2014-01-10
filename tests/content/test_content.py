@@ -3,25 +3,25 @@ from yoshimi.content import Content
 from .types import get_content
 
 
-class TestContent(test.TestCase):
+class TestContent:
     def test_content_has_creator(self):
         user = Content()
         resource = Content(creator=user)
 
-        self.assertEqual(user, resource.creator)
+        assert user == resource.creator
 
     def test_creator_has_list_of_own_content(self):
         user = Content()
         Content(creator=user)
         Content(creator=user)
 
-        self.assertEqual(len(user.own_content), 2)
+        assert len(user.own_content) == 2
 
     def test_parent(self):
         c1 = get_content()
         c2 = get_content(parent=c1, name='c2')
 
-        self.assertEquals(c2.parent, c1)
+        assert c2.parent == c1
 
     def test_slugs(self):
         f1 = get_content(slug='Folder')
@@ -30,9 +30,9 @@ class TestContent(test.TestCase):
 
         slugs = a2.slugs
 
-        self.assertEqual('Folder', slugs[0])
-        self.assertEqual('Article1', slugs[1])
-        self.assertEqual('Article2', slugs[2])
+        assert 'Folder' == slugs[0]
+        assert 'Article1' == slugs[1]
+        assert 'Article2' == slugs[2]
 
     def test_lineage(self):
         root = get_content(name='f1')
@@ -41,15 +41,15 @@ class TestContent(test.TestCase):
 
         ancestors = child2.lineage
 
-        self.assertEqual(len(ancestors), 3)
-        self.assertEqual(ancestors[0], root)
-        self.assertEqual(ancestors[1], child1)
-        self.assertEqual(ancestors[2], child2)
+        assert len(ancestors) == 3
+        assert ancestors[0] == root
+        assert ancestors[1] == child1
+        assert ancestors[2] == child2
 
     def test_paths_to_root_are_created(self):
         root = Content()
         child = Content(root)
 
-        self.assertEquals(len(child.paths), 2)
-        self.assertEquals(child._sorted_paths()[0].length, 1)
-        self.assertEquals(child._sorted_paths()[1].length, 0)
+        assert len(child.paths) == 2
+        assert child._sorted_paths()[0].length == 1
+        assert child._sorted_paths()[1].length == 0

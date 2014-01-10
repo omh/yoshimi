@@ -1,12 +1,17 @@
 # flake8: noqa
-try:
-    from mock import Mock, MagicMock, patch
-except ImportError:
-    from unittest.mock import Mock, MagicMock, patch
+import os
 
-from nose.plugins.attrib import attr
-from yoshimi.test.cases import TestCase
+try:  # python >= 3.3
+    from unittest.mock import Mock, MagicMock, patch
+except ImportError:  # to support python <= 3.2
+    from mock import Mock, MagicMock, patch
+
+import pytest
 from yoshimi.test.cases import DatabaseTestCase
 from yoshimi.test.cases import QueryCountTestCase
 
-all_databases = attr('database')
+all_databases = pytest.mark.all_databases
+
+
+if not 'YOSHIMI_TEST_DB' in os.environ:
+    os.environ['YOSHIMI_TEST_DB'] = 'sqlite:///:memory:'

@@ -2,16 +2,16 @@ from yoshimi import test
 from .types import get_article, get_folder
 
 
-class TestContent(test.TestCase):
+class TestContent:
     def test_create_new(self):
         article = get_article(name='testing')
-        self.assertEquals(article.name, 'testing')
+        assert article.name == 'testing'
 
     def test_parent(self):
         article1 = get_article()
         article2 = get_article(parent=article1, name='a2')
 
-        self.assertEquals(article2.parent, article1)
+        assert article2.parent == article1
 
     def test_slugs(self):
         f1 = get_folder(slug='Folder')
@@ -20,9 +20,9 @@ class TestContent(test.TestCase):
 
         slugs = a2.slugs
 
-        self.assertEqual('Folder', slugs[0])
-        self.assertEqual('Article1', slugs[1])
-        self.assertEqual('Article2', slugs[2])
+        assert 'Folder' == slugs[0]
+        assert 'Article1' == slugs[1]
+        assert 'Article2' == slugs[2]
 
     def test_lineage(self):
         root = get_folder(name='f1')
@@ -31,10 +31,10 @@ class TestContent(test.TestCase):
 
         ancestors = child2.lineage
 
-        self.assertEqual(len(ancestors), 3)
-        self.assertEqual(ancestors[0], root)
-        self.assertEqual(ancestors[1], child1)
-        self.assertEqual(ancestors[2], child2)
+        assert len(ancestors) == 3
+        assert ancestors[0] == root
+        assert ancestors[1] == child1
+        assert ancestors[2] == child2
 
 
 class TestContentDatabase(test.DatabaseTestCase):
@@ -47,7 +47,7 @@ class TestContentDatabase(test.DatabaseTestCase):
 
         ancestors = child2.lineage
 
-        self.assertEqual(len(ancestors), 3)
-        self.assertEqual(ancestors[0], root)
-        self.assertEqual(ancestors[1], child1)
-        self.assertEqual(ancestors[2], child2)
+        assert len(ancestors) == 3
+        assert ancestors[0] == root
+        assert ancestors[1] == child1
+        assert ancestors[2] == child2

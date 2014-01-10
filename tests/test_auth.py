@@ -19,8 +19,8 @@ def mock_load_user(user):
     return a
 
 
-class TestAuthCoordinator(test.TestCase):
-    def setUp(self):
+class TestAuthCoordinator:
+    def setup(self):
         self.user = User(
             name="Test user",
             slug="/test-user",
@@ -33,25 +33,25 @@ class TestAuthCoordinator(test.TestCase):
             remember_result=[('Set-Cookie', 'yoshimi_auth="bla"')]
         )
 
-    def tearDown(self):
+    def teardown(self):
         testing.tearDown()
 
     def test_login_user_successful(self):
         rv = self.auth.login("test@test.com", "testpass")
-        self.assertNotEqual(rv, False)
+        assert rv is not False
 
     def test_login_user_incorrect_pass(self):
         rv = self.auth.login("test@test.com", "incorrect pass")
-        self.assertFalse(rv)
+        assert rv is False
 
     def test_logout_current(self):
         self.config.testing_securitypolicy(forget_result=[])
-        self.assertEqual(self.auth.logout(), [])
+        assert self.auth.logout() == []
 
     def test_is_logged_in(self):
         self.config.testing_securitypolicy(userid="123")
-        self.assertEqual(self.auth.is_logged_in, "123")
+        assert self.auth.is_logged_in == "123"
 
     def test_current(self):
         self.config.testing_securitypolicy(userid="123")
-        self.assertEqual(self.auth.current, self.user)
+        assert self.auth.current == self.user

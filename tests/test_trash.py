@@ -1,3 +1,4 @@
+import pytest
 import sqlalchemy
 from yoshimi import test
 from yoshimi.entities import TrashContent
@@ -5,17 +6,18 @@ from yoshimi.services import Trash
 from .content.types import get_content
 
 
-class TestTrashContent(test.TestCase):
+class TestTrashContent:
     def test_relationship_with_content(self):
         c1 = get_content()
         entity = TrashContent(content=c1)
 
-        self.assertEqual(entity.content, c1)
-        self.assertEqual(c1.trash_info, entity)
+        assert entity.content == c1
+        assert c1.trash_info == entity
 
 
 class TestTrash(test.DatabaseTestCase):
     def setup(self):
+        super().setup()
         self.root = get_content()
         self.c1 = get_content(parent=self.root)
         self.c2 = get_content(parent=self.c1)
@@ -30,31 +32,31 @@ class TestTrash(test.DatabaseTestCase):
         self.trash.insert(self.c3)
 
         trash_entry = self._get_trash_entity(self.c3.id)
-        self.assertIsNotNone(trash_entry)
-        self.assertIsNotNone(trash_entry.created_at)
-        self.assertTrue(self.c3.is_trashed)
-        self.assertFalse(self.c1.is_trashed)
+        assert trash_entry is not None
+        assert trash_entry.created_at is not None
+        assert self.c3.is_trashed is True
+        assert self.c1.is_trashed is False
 
     def test_insert_single_not_soft(self):
         self.trash.insert(self.c3, soft=False)
 
-        self.assertTrue(self.c3.is_pending_deletion)
+        assert self.c3.is_pending_deletion is True
 
     def test_insert_subtree(self):
         self.trash.insert(self.root)
 
-        self.assertTrue(self.root.is_trashed)
-        self.assertTrue(self.c1.is_trashed)
-        self.assertTrue(self.c2.is_trashed)
-        self.assertTrue(self.c3.is_trashed)
+        assert self.root.is_trashed is True
+        assert self.c1.is_trashed is True
+        assert self.c2.is_trashed is True
+        assert self.c3.is_trashed is True
 
     def test_empty(self):
         self.trash.insert(self.c3)
 
         self.trash.empty()
 
-        self.assertTrue(self.c3.is_pending_deletion)
-        self.assertEqual(self._trash_count(), 0)
+        assert self.c3.is_pending_deletion is True
+        assert self._trash_count() == 0
 
     def test_permanently_empty(self):
         self.trash.insert(self.c3)
@@ -62,7 +64,7 @@ class TestTrash(test.DatabaseTestCase):
         self.trash.empty()
         self.trash.permanently_empty()
 
-        with self.assertRaises(sqlalchemy.orm.exc.ObjectDeletedError):
+        with pytest.raises(sqlalchemy.orm.exc.ObjectDeletedError):
             self.c3.id
 
     def test_restore_without_children(self):
@@ -70,18 +72,18 @@ class TestTrash(test.DatabaseTestCase):
 
         self.trash.restore(self.root, with_children=False)
 
-        self.assertTrue(self.root.is_available)
-        self.assertTrue(self.c1.is_trashed)
-        self.assertEqual(self._trash_count(), 3)
+        assert self.root.is_available is True
+        assert self.c1.is_trashed is True
+        assert self._trash_count() is 3
 
     def test_restore_with_children(self):
         self.trash.insert(self.root)
 
         self.trash.restore(self.root, with_children=True)
 
-        self.assertTrue(self.root.is_available)
-        self.assertTrue(self.c1.is_available)
-        self.assertEqual(self._trash_count(), 0)
+        assert self.root.is_available is True
+        assert self.c1.is_available is True
+        assert self._trash_count() == 0
 
     def _trash_count(self):
         return self.s.query(TrashContent).count()

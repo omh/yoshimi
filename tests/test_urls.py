@@ -1,3 +1,4 @@
+import pytest
 from pyramid.testing import DummyRequest
 from pyramid.httpexceptions import (
     HTTPFound,
@@ -6,8 +7,8 @@ from pyramid.httpexceptions import (
 from yoshimi import test
 
 
-class _PathFunctionTests(test.TestCase):
-    def setUp(self):
+class _PathFunctionBase():
+    def setup(self):
         self.req = test.Mock()
         self.req.matched_route.name = 'route_name'
         self.content = test.Mock()
@@ -41,9 +42,9 @@ class _PathFunctionTests(test.TestCase):
         )
 
 
-class TestPath(_PathFunctionTests):
-    def setUp(self):
-        super().setUp()
+class TestPath(_PathFunctionBase):
+    def setup(self):
+        super().setup()
         from yoshimi.url import path
         self.fut = path
 
@@ -51,9 +52,9 @@ class TestPath(_PathFunctionTests):
         self.req.resource_path.assert_called_with(*args, **kw)
 
 
-class TestUrl(_PathFunctionTests):
-    def setUp(self):
-        super().setUp()
+class TestUrl(_PathFunctionBase):
+    def setup(self):
+        super().setup()
         from yoshimi.url import url
         self.fut = url
 
@@ -61,7 +62,7 @@ class TestUrl(_PathFunctionTests):
         self.req.resource_url.assert_called_with(*args, **kw)
 
 
-class TestBackToContextUrl(test.TestCase):
+class TestBackToContextUrl:
     def setup(self):
         from yoshimi.url import back_to_context_url
         self.fut = back_to_context_url
@@ -84,7 +85,7 @@ class TestBackToContextUrl(test.TestCase):
         safe_redirect_url.assert_called_with(self.req, '/context')
 
 
-class TestRedirectBackToContext(test.TestCase):
+class TestRedirectBackToContext:
     @test.patch('yoshimi.url.back_to_context_url', autospec=True)
     def test_context_redirect_back(self, url_func_mock):
         from yoshimi.url import redirect_back_to_context
@@ -96,7 +97,7 @@ class TestRedirectBackToContext(test.TestCase):
         url_func_mock.assert_called_once_with(context_mock, request_mock)
 
 
-class TestRedirectBack(test.TestCase):
+class TestRedirectBack:
     def setup(self):
         from yoshimi.url import redirect_back
         self.fut = redirect_back
@@ -111,15 +112,15 @@ class TestRedirectBack(test.TestCase):
         self.req.GET['back'] = '/testing'
         rv = self.fut(self.req)
 
-        self.assertIsInstance(rv, HTTPFound)
-        self.assertEqual(rv.location, '/testing')
+        assert isinstance(rv, HTTPFound)
+        assert rv.location == '/testing'
 
     def test_redirect_back_using_fallback(self):
         rv = self.fut(self.req, fallback='/fallback')
-        self.assertEqual(rv.location, '/fallback')
+        assert rv.location == '/fallback'
 
 
-class TestRedirectBackToParent(test.TestCase):
+class TestRedirectBackToParent:
     def setup(self):
         from yoshimi.url import redirect_back_to_parent
         self.fut = redirect_back_to_parent
@@ -142,7 +143,7 @@ class TestRedirectBackToParent(test.TestCase):
         redirect_func.assert_called_once_with(self.req)
 
 
-class TestSafeRedirectUrl(test.TestCase):
+class TestSafeRedirectUrl:
     def setup(self):
         from yoshimi.url import safe_redirect_url
         self.fut = safe_redirect_url
@@ -154,17 +155,17 @@ class TestSafeRedirectUrl(test.TestCase):
         self.req.url = "http://www.example.com/some-page"
         url = "http://www.example.com/testing"
         rv = self.fut(self.req, url)
-        self.assertEquals(url, rv)
+        assert url == rv
 
     def test_redirect_to_relative_url_is_ok(self):
         url = "/testing"
         rv = self.fut(self.req, url)
-        self.assertEquals(url, rv)
+        assert url == rv
 
     def test_redirect_to_different_host_fails(self):
         url = "http://www.example2.com"
         rv = self.fut(self.req, url, fallback='/error')
-        self.assertEquals(rv, '/error')
+        assert rv == '/error'
 
     def test_redirect_to_whitelisted_host_is_ok(self):
         self.req.registry.settings = {
@@ -174,7 +175,7 @@ class TestSafeRedirectUrl(test.TestCase):
         }
         url = "http://www.example.com"
         rv = self.fut(self.req, url, fallback='/error')
-        self.assertEquals(rv, url)
+        assert rv == url
 
     def test_redirect_to_not_whitelisted_host_fails(self):
         self.req.registry.settings = {
@@ -184,10 +185,10 @@ class TestSafeRedirectUrl(test.TestCase):
         }
         url = "http://www.example.com:81"
         rv = self.fut(self.req, url, fallback='/error')
-        self.assertEquals(rv, '/error')
+        assert rv == '/error'
 
 
-class TestResourceUrlAdapter(test.TestCase):
+class TestResourceUrlAdapter:
     def test_populates_location_aware_attributes(self):
         from yoshimi.url import ResourceUrlAdapter
 
@@ -201,19 +202,20 @@ class TestResourceUrlAdapter(test.TestCase):
         request = DummyRequest()
         ResourceUrlAdapter(loc3, request)
 
-        self.assertIsNone(loc1.__parent__)
-        self.assertIsNotNone(loc1.__name__)
-        self.assertIsNotNone(loc2.__parent__)
-        self.assertIsNotNone(loc2.__name__)
-        self.assertIsNotNone(loc3.__parent__)
-        self.assertIsNotNone(loc3.__name__)
+        assert loc1.__parent__ is None
+        assert loc1.__name__ is not None
+        assert loc2.__parent__ is not None
+        assert loc2.__name__ is not None
+        assert loc3.__parent__ is not None
+        assert loc3.__name__ is not None
 
 
-class TestRootFactory(test.TestCase):
-    def setUp(self):
+class TestRootFactory:
+    def setup_class(cls):
         from yoshimi.url import RootFactory
-        self.fut = RootFactory
+        cls.fut = RootFactory
 
+    def setup(self):
         self.request = DummyRequest()
         self.request.matchdict['traverse'] = ("a", "b-1")
         self.request.resource_path = test.Mock()
@@ -228,32 +230,34 @@ class TestRootFactory(test.TestCase):
 
         self.patched_url = test.patch('yoshimi.url.path').start()
         self.patched_url.return_value = '/a/b-1'
-        self.addCleanup(test.patch.stopall)
+
+    def teardown(self):
+        test.patch.stopall()
 
     def test_returns_resource_root(self):
         root = self.fut(self.context_getter)(self.request)
-        self.assertEqual(self.loc2, root['a']['b-1'])
+        assert self.loc2 == root['a']['b-1']
 
     def test_returns_none_without_traverse_match(self):
         self.request.matchdict = None
         root = self.fut(self.context_getter)(self.request)
-        self.assertIsNone(root)
+        assert root is None
 
     def test_returns_none_without_context(self):
         root = self.fut(lambda id: None)(self.request)
-        self.assertIsNone(root)
+        assert root is None
 
     def test_raises_redirect_on_url_mismatch(self):
         self.request.matchdict['traverse'] = ("bla-1",)
-        with self.assertRaises(HTTPMovedPermanently) as cm:
+        with pytest.raises(HTTPMovedPermanently) as cm:
             self.fut(self.context_getter)(self.request)
 
-        self.assertEqual(cm.exception.location, '/a/b-1')
+        assert cm.value.location == '/a/b-1'
 
     def test_returns_resource_root_with_trailing_view(self):
         self.request.matchdict['traverse'] = ('a', 'b-1', 'view')
         root = self.fut(self.context_getter)(self.request)
-        self.assertEqual(self.loc2, root['a']['b-1'])
+        assert self.loc2 == root['a']['b-1']
 
     def test_returns_none_with_invalid_url_format(self):
         self.request.matchdict['traverse'] = ('a', 'b2')
@@ -262,4 +266,4 @@ class TestRootFactory(test.TestCase):
 
         root = self.fut(self.context_getter)(self.request)
 
-        self.assertIsNone(root)
+        assert root is None

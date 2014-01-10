@@ -1,3 +1,4 @@
+import pytest
 from pyramid import testing
 from pyramid.httpexceptions import HTTPUnauthorized
 from webob.multidict import MultiDict
@@ -18,20 +19,20 @@ class DummyForm(ConflictPreventionForm):
     a = TextField()
 
 
-class TestCsrfForm(test.TestCase):
-    def setUp(self):
+class TestCsrfForm:
+    def setup(self):
         self.request = testing.DummyRequest()
         self.request.POST = MultiDict()
         self.request.session.get_csrf_token = lambda: None
 
     def test_raises_401_when_csrf_empty(self):
-        with self.assertRaises(HTTPUnauthorized):
+        with pytest.raises(HTTPUnauthorized):
             form = CsrfForm(formdata=None, csrf_context=self.request.session)
             form.validate()
 
     def test_raises_401_when_csrf_mismatch(self):
         self.request.POST['csrf_token'] = 'abc'
-        with self.assertRaises(HTTPUnauthorized):
+        with pytest.raises(HTTPUnauthorized):
             form = CsrfForm(self.request.POST, csrf_context=self.request.session)
             form.validate()
 
@@ -39,15 +40,15 @@ class TestCsrfForm(test.TestCase):
         self.request.POST['csrf_token'] = 'abc'
         self.request.session.get_csrf_token = lambda: 'abc'
         form = CsrfForm(self.request.POST, csrf_context=self.request.session)
-        self.assertTrue(form.validate())
+        assert form.validate() == True
 
     def test_no_csrf_check_when_disabled(self):
         form = CsrfForm(self.request.POST, csrf_enabled=False)
-        self.assertTrue(form.validate())
+        assert form.validate() == True
 
 
-class TestConflictPreventionForm(test.TestCase):
-    def setUp(self):
+class TestConflictPreventionForm:
+    def setup(self):
         self.dummy = Dummy()
 
     def test_form_when_no_changes(self):
@@ -63,7 +64,7 @@ class TestConflictPreventionForm(test.TestCase):
             csrf_enabled=False
         )
 
-        self.assertTrue(form.validate())
+        assert form.validate() == True
 
     def test_validation_fails_when_data_is_outdated(self):
         form = DummyForm(
@@ -80,17 +81,17 @@ class TestConflictPreventionForm(test.TestCase):
             csrf_enabled=False
         )
 
-        self.assertFalse(form.validate())
+        assert form.validate() == False
 
 
-class TestContentMoveForm(test.TestCase):
+class TestContentMoveForm:
     def test_content_id_is_required(self):
         form = ContentMoveForm(csrf_enabled=False)
-        self.assertFalse(form.validate())
+        assert form.validate() == False
 
     def test_validates(self):
         form = ContentMoveForm(
             formdata=MultiDict({'parent_id': 123}),
             csrf_enabled=False
         )
-        self.assertTrue(form.validate())
+        assert form.validate() == True

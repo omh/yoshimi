@@ -14,7 +14,7 @@ def page_number(n):
     return max(int(n), 1)
 
 
-class LazyPagination(object):
+class LazyPagination:
     """Makes a lazy paginator - nothing is fetched until it's used
 
     This class is useful if you want to send a paginator to the template, but
@@ -41,7 +41,7 @@ class LazyPagination(object):
         return getattr(self.paginator, name)
 
 
-class Proxy():
+class Proxy:
     """ Simple proxy class that delegates calls to its proxy """
     def __getattr__(self, name):
         return getattr(self._proxy, name)
