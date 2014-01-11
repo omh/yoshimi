@@ -95,7 +95,7 @@ class TestLogoutView:
         assert len(self.request.session) == 0
 
 
-class TestWrapView(test.TestCase):
+class TestWrapView:
     def setup(self):
         from yoshimi.views import wrap_view
 
