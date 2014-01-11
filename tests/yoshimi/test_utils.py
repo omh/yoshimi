@@ -59,7 +59,7 @@ class TestProxy:
 class TestCacheFunc:
     def test_func_only_called_once(self):
         from yoshimi.utils import cache_func
-        func = test.Mock()
+        func = Mock()
         func.return_value = 'string'
         new_func = cache_func(func)
         rv = new_func()

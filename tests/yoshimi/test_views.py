@@ -7,7 +7,10 @@ from yoshimi.forms import ContentMoveForm
 from yoshimi.views import login
 from yoshimi.views import logout
 from yoshimi.views import move
-from tests.yoshimi import Mock
+from tests.yoshimi import (
+    Mock,
+    patch,
+)
 
 
 class TestDeleteView:
@@ -15,10 +18,10 @@ class TestDeleteView:
         from yoshimi.views import delete
         self.fut = delete
 
-        self.req = test.Mock()
-        self.context = test.Mock()
+        self.req = Mock()
+        self.context = Mock()
 
-    @test.patch('yoshimi.views.redirect_back_to_parent', autospec=True)
+    @patch('yoshimi.views.redirect_back_to_parent', autospec=True)
     def test_delete(self, redirect_func):
         self.fut(self.context, self.req)
 
