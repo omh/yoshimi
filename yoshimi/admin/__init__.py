@@ -11,10 +11,11 @@ def include_views(config):
     config.add_view(
         login, route_name='y.admin.login', renderer='admin/user/login.jinja2'
     )
-
     config.add_route('y.admin.logout', '/user/logout')
     config.add_view(
-        logout, route_name='y.admin.logout', renderer='admin/user/logout.jinja2'
+        logout,
+        route_name='y.admin.logout',
+        renderer='admin/user/logout.jinja2'
     )
 
     config.add_route('y_admin', '*traverse')
@@ -22,7 +23,10 @@ def include_views(config):
         edit, route_name='y_admin', name='edit', renderer='admin/edit.jinja2'
     )
     config.add_view(
-        browse, route_name='y_admin', name='browse', renderer='admin/browse.jinja2'
+        browse,
+        route_name='y_admin',
+        name='browse',
+        renderer='admin/browse.jinja2'
     )
     config.add_view(
         move, route_name='y_admin', name='move', renderer='json'
