@@ -1,5 +1,18 @@
 import pytest
-from yoshimi import test
+from tests.yoshimi import (
+    DatabaseTestCase,
+    QueryCountTestCase,
+    Mock,
+    patch,
+    all_databases,
+)
+from tests.yoshimi.contenttypes import (
+    Article,
+    Folder,
+    get_article,
+    get_folder,
+    get_content,
+)
 from yoshimi.repo import (
     Repo,
     Query,
@@ -12,60 +25,52 @@ from yoshimi.content import (
     Content,
 )
 from yoshimi.services import Trash
-from .content.types import (
-    Article,
-    Folder,
-    get_article,
-    get_folder,
-    get_content,
-)
-
 
 # @TODO test children query does not trigger extra query when accessing content
 # type attributes, e.g article.title
 
 
 class TestRepo:
-    @test.patch('yoshimi.repo.MoveOperation', autospec=MoveOperation)
+    @patch('yoshimi.repo.MoveOperation', autospec=MoveOperation)
     def test_move(self, move_class):
-        session = test.Mock()
+        session = Mock()
         repo = get_repo_mock(session=session)
-        subject = test.Mock()
+        subject = Mock()
 
         rv = repo.move(subject)
 
         assert isinstance(rv, MoveOperation)
         move_class.assert_called_once_with(session, subject)
 
-    @test.patch('yoshimi.repo.DeleteOperation', autospec=DeleteOperation)
+    @patch('yoshimi.repo.DeleteOperation', autospec=DeleteOperation)
     def test_delete(self, delete_class):
-        session = test.Mock()
+        session = Mock()
         repo = get_repo_mock(session=session)
-        subject = test.Mock()
+        subject = Mock()
 
         repo.delete(subject)
 
         delete_class.assert_called_once_with(session)
         delete_class.return_value.delete.assert_called_once_with(subject)
 
-    @test.patch('yoshimi.repo.Query', autospec=Query)
+    @patch('yoshimi.repo.Query', autospec=Query)
     def test_query(self, query_class):
-        session = test.Mock()
-        registry = test.Mock()
-        query_extension = test.Mock(autospec=_QueryExtensions)
+        session = Mock()
+        registry = Mock()
+        query_extension = Mock(autospec=_QueryExtensions)
         query_extension.methods = {}
         registry.queryUtility.return_value = query_extension
         repo = Repo(registry, session)
-        subject = test.Mock()
+        subject = Mock()
 
         rv = repo.query(subject)
 
         assert isinstance(rv, Query)
         query_class.assert_called_once_with(session, subject, {})
 
-    @test.patch('yoshimi.repo.Trash', autospec=True)
+    @patch('yoshimi.repo.Trash', autospec=True)
     def test_trash(self, trash_class):
-        session = test.Mock()
+        session = Mock()
         repo = get_repo_mock(session=session)
 
         rv = repo.trash
@@ -74,7 +79,7 @@ class TestRepo:
         trash_class.assert_called_once_with(session)
 
 
-class TestQueryEagerLoading(test.QueryCountTestCase):
+class TestQueryEagerLoading(QueryCountTestCase):
     def test_load_path_with_content(self):
         id = self.get_id_from_added_object(get_content())
 
@@ -89,8 +94,8 @@ class TestQueryEagerLoading(test.QueryCountTestCase):
 class TestQuery:
     def test_extension(self):
         # callable(query, *args, **kwargs)
-        session = test.Mock()
-        callable = test.Mock()
+        session = Mock()
+        callable = Mock()
         query = Query(session, None, {'test_func': callable})
         query.test_func('a').get_query()
 
@@ -99,7 +104,7 @@ class TestQuery:
         assert callable.call_count == 1
 
 
-class TestQueryChildren(test.DatabaseTestCase):
+class TestQueryChildren(DatabaseTestCase):
     def setup(self):
         super().setup()
         # - root
@@ -165,7 +170,7 @@ class TestQueryChildren(test.DatabaseTestCase):
         assert len(children) == 6
 
 
-class TestQueryStatus(test.DatabaseTestCase):
+class TestQueryStatus(DatabaseTestCase):
     def setup(self):
         super().setup()
         self.a1 = get_article(name='a1')
@@ -184,7 +189,7 @@ class TestQueryStatus(test.DatabaseTestCase):
         assert rv[0] == self.a2
 
 
-class TestContentGetter(test.DatabaseTestCase):
+class TestContentGetter(DatabaseTestCase):
     def setup(self):
         super().setup()
         from yoshimi.repo import content_getter
@@ -206,8 +211,8 @@ class TestContentGetter(test.DatabaseTestCase):
             self.fut(self.repo, 999)
 
 
-@test.all_databases
-class TestMoveOperation(test.DatabaseTestCase):
+@all_databases
+class TestMoveOperation(DatabaseTestCase):
     def test_to(self):
         root = get_folder(name='f1')
         subject = get_article(root, name='a1')
@@ -221,8 +226,8 @@ class TestMoveOperation(test.DatabaseTestCase):
         assert subject.parent == new_parent
 
 
-@test.all_databases
-class TestDeleteOperation(test.DatabaseTestCase):
+@all_databases
+class TestDeleteOperation(DatabaseTestCase):
     def setup(self):
         """
         - root [main, folder]
@@ -290,13 +295,13 @@ class TestDeleteOperation(test.DatabaseTestCase):
 
 def get_repo_mock(registry=None, session=None, query_extensions=None):
     if not session:
-        session = test.Mock()
+        session = Mock()
     if not registry:
-        registry = test.Mock()
+        registry = Mock()
     if not query_extensions:
         query_extensions = {}
 
-    query_extension = test.Mock(autospec=_QueryExtensions)
+    query_extension = Mock(autospec=_QueryExtensions)
     query_extension.methods = query_extensions
     registry.queryUtility.return_value = query_extension
     repo = Repo(registry, session)

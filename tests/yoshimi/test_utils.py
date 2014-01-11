@@ -1,5 +1,5 @@
 import pytest
-from yoshimi import test
+from tests.yoshimi import Mock
 from yoshimi.utils import LazyPagination
 from yoshimi.utils import page_number
 from yoshimi.utils import Proxy
@@ -21,7 +21,7 @@ class TestPageNumber:
 
 class TestLazyPaginator:
     def test_calls_paginate_and_forwards_property(self):
-        query = test.Mock()
+        query = Mock()
         query.configure_mock(**{'paginate.return_value.total': 30})
 
         total = LazyPagination(query, 4).total

@@ -1,9 +1,9 @@
 import pytest
 import sqlalchemy
-from yoshimi import test
+from tests.yoshimi import DatabaseTestCase
+from tests.yoshimi.contenttypes import get_content
 from yoshimi.entities import TrashContent
 from yoshimi.services import Trash
-from .content.types import get_content
 
 
 class TestTrashContent:
@@ -15,7 +15,7 @@ class TestTrashContent:
         assert c1.trash_info == entity
 
 
-class TestTrash(test.DatabaseTestCase):
+class TestTrash(DatabaseTestCase):
     def setup(self):
         super().setup()
         self.root = get_content()

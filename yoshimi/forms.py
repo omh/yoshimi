@@ -1,6 +1,6 @@
 """
     yoshimi.forms
-    ~~~~~~~~~
+    ~~~~~~~~~~~~~
 
     This module implements various forms based on WTForms.
 

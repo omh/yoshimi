@@ -1,5 +1,8 @@
-from yoshimi import test
-from .types import get_article, get_folder
+from tests.yoshimi import DatabaseTestCase
+from tests.yoshimi.contenttypes import (
+    get_folder,
+    get_article,
+)
 
 
 class TestContent:
@@ -37,7 +40,7 @@ class TestContent:
         assert ancestors[2] == child2
 
 
-class TestContentDatabase(test.DatabaseTestCase):
+class TestContentDatabase(DatabaseTestCase):
     def test_lineage(self):
         root = get_folder(name='f1')
         child1 = get_article(parent=root, name='c1')

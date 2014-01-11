@@ -1,8 +1,22 @@
+# flake8: noqa
 import os
 from contextlib import contextmanager
-from sqlalchemy import event
 from yoshimi import db
+from sqlalchemy import event
 from yoshimi.entities import Base
+import pytest
+
+try:  # python >= 3.3
+    from unittest.mock import Mock, MagicMock, patch
+except ImportError:  # to support python <= 3.2
+    from mock import Mock, MagicMock, patch
+
+
+all_databases = pytest.mark.all_databases
+
+
+if not 'YOSHIMI_TEST_DB' in os.environ:
+    os.environ['YOSHIMI_TEST_DB'] = 'sqlite:///:memory:'
 
 dbs = []
 

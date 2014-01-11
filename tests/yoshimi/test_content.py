@@ -1,5 +1,5 @@
 from yoshimi.content import Content
-from .types import get_content
+from tests.yoshimi.contenttypes import get_content
 
 
 class TestContent:

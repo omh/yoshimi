@@ -4,14 +4,18 @@ from pyramid.httpexceptions import (
     HTTPFound,
     HTTPMovedPermanently
 )
-from yoshimi import test
+from tests.yoshimi import (
+    Mock,
+    MagicMock,
+    patch
+)
 
 
 class _PathFunctionBase():
     def setup(self):
-        self.req = test.Mock()
+        self.req = Mock()
         self.req.matched_route.name = 'route_name'
-        self.content = test.Mock()
+        self.content = Mock()
         self.fut = None
 
     def assert_call(self, *args, **kw):
@@ -73,24 +77,24 @@ class TestBackToContextUrl:
         self.req = DummyRequest()
         self.req.y_path = y_path
 
-    @test.patch('yoshimi.url.safe_redirect_url', autospec=True)
+    @patch('yoshimi.url.safe_redirect_url', autospec=True)
     def test_with_back_get_param(self, safe_redirect_url):
         self.req.GET['back'] = '/back'
         self.fut(self.req, self.req)
         safe_redirect_url.assert_called_with(self.req, '/back')
 
-    @test.patch('yoshimi.url.safe_redirect_url', autospec=True)
+    @patch('yoshimi.url.safe_redirect_url', autospec=True)
     def test_without_back_get_param(self, safe_redirect_url):
         self.fut(self.req, 'bla')
         safe_redirect_url.assert_called_with(self.req, '/context')
 
 
 class TestRedirectBackToContext:
-    @test.patch('yoshimi.url.back_to_context_url', autospec=True)
+    @patch('yoshimi.url.back_to_context_url', autospec=True)
     def test_context_redirect_back(self, url_func_mock):
         from yoshimi.url import redirect_back_to_context
-        request_mock = test.Mock()
-        context_mock = test.Mock()
+        request_mock = Mock()
+        context_mock = Mock()
 
         redirect_back_to_context(context_mock, request_mock)
 
@@ -126,17 +130,17 @@ class TestRedirectBackToParent:
         self.fut = redirect_back_to_parent
         self.req = DummyRequest()
 
-    @test.patch('yoshimi.url.redirect_back_to_context', autospec=True)
+    @patch('yoshimi.url.redirect_back_to_context', autospec=True)
     def test_redirects_to_parent(self, redirect_func):
-        context = test.Mock()
-        context.parent = test.Mock()
+        context = Mock()
+        context.parent = Mock()
         self.fut(self.req, context)
 
         redirect_func.assert_called_once_with(self.req, context.parent)
 
-    @test.patch('yoshimi.url.redirect_back', autospec=True)
+    @patch('yoshimi.url.redirect_back', autospec=True)
     def test_redirects_to_slash_without_parent(self, redirect_func):
-        context = test.Mock()
+        context = Mock()
         context.parent = None
         self.fut(self.req, context)
 
@@ -192,9 +196,9 @@ class TestResourceUrlAdapter:
     def test_populates_location_aware_attributes(self):
         from yoshimi.url import ResourceUrlAdapter
 
-        loc1 = test.MagicMock()
-        loc2 = test.MagicMock()
-        loc3 = test.MagicMock()
+        loc1 = MagicMock()
+        loc2 = MagicMock()
+        loc3 = MagicMock()
         loc3.lineage = [loc1, loc2, loc3]
         loc3.id = 1
         loc3.slugs = ['a', 'b', 'c']
@@ -218,21 +222,21 @@ class TestRootFactory:
     def setup(self):
         self.request = DummyRequest()
         self.request.matchdict['traverse'] = ("a", "b-1")
-        self.request.resource_path = test.Mock()
+        self.request.resource_path = Mock()
         self.request.resource_path.return_value = '/a/b-1'
-        self.request.y_path = test.Mock()
+        self.request.y_path = Mock()
         self.request.y_path.return_value = '/a/b-1'
 
-        self.loc1 = test.Mock()
-        self.loc2 = test.Mock()
+        self.loc1 = Mock()
+        self.loc2 = Mock()
         self.loc2.lineage = [self.loc1, self.loc2]
         self.context_getter = lambda id: self.loc2
 
-        self.patched_url = test.patch('yoshimi.url.path').start()
+        self.patched_url = patch('yoshimi.url.path').start()
         self.patched_url.return_value = '/a/b-1'
 
     def teardown(self):
-        test.patch.stopall()
+        patch.stopall()
 
     def test_returns_resource_root(self):
         root = self.fut(self.context_getter)(self.request)
@@ -261,7 +265,7 @@ class TestRootFactory:
 
     def test_returns_none_with_invalid_url_format(self):
         self.request.matchdict['traverse'] = ('a', 'b2')
-        self.context_getter = test.Mock()
+        self.context_getter = Mock()
         self.context_getter.return_value = None
 
         root = self.fut(self.context_getter)(self.request)

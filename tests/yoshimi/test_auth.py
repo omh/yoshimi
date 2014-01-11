@@ -1,8 +1,8 @@
 from passlib.context import CryptContext
 from pyramid import testing
 from yoshimi import auth
-from yoshimi import test
 from yoshimi.contenttypes import User
+from tests.yoshimi import Mock
 
 # Override passlibs custom_app_context to speed up password verification for
 # while testing.
@@ -14,7 +14,7 @@ auth.custom_app_context = CryptContext(
 
 def mock_load_user(user):
     a = auth.AuthCoordinator(testing.DummyRequest())
-    a.load = test.Mock(return_value=user)
+    a.load = Mock(return_value=user)
 
     return a
 

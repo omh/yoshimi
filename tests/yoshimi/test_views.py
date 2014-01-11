@@ -7,7 +7,7 @@ from yoshimi.forms import ContentMoveForm
 from yoshimi.views import login
 from yoshimi.views import logout
 from yoshimi.views import move
-from yoshimi import test
+from tests.yoshimi import Mock
 
 
 class TestMoveView:
@@ -15,8 +15,8 @@ class TestMoveView:
         self.request = testing.DummyRequest()
         self.request.POST = MultiDict()
         self.request.method = 'POST'
-        self.request.y_path = test.Mock()
-        self.request.y_repo = test.Mock()
+        self.request.y_path = Mock()
+        self.request.y_repo = Mock()
         ContentMoveForm.csrf_enabled = False
 
     def test_validation_error_if_no_content_id_in_form(self):
@@ -26,7 +26,7 @@ class TestMoveView:
     def test_moves_content_when_new_parent_id_is_provided(self):
         self.request.y_path.return_value = '/move'
         self.request.POST['parent_id'] = 123
-        self.request.context = test.Mock()
+        self.request.context = Mock()
 
         rv = move(self.request.context, self.request)
 
@@ -42,7 +42,7 @@ class TestLoginView:
              'password': '123456'}
         )
         self.request.method = 'POST'
-        self.request.y_user = test.Mock(spec_set=AuthCoordinator)
+        self.request.y_user = Mock(spec_set=AuthCoordinator)
 
     def test_redirects_on_succesful_login(self):
         self.request.y_user.login.return_value = {'A': 2}
@@ -67,7 +67,7 @@ class TestLogoutView:
     def setup(self):
         self.request = testing.DummyRequest()
         self.request.session['_csrft_'] = 'some token'
-        self.request.y_user = test.Mock(spec_set=AuthCoordinator)
+        self.request.y_user = Mock(spec_set=AuthCoordinator)
         self.request.y_user.logout.return_value = {}
 
     def test_returns_redirect(self):
