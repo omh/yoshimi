@@ -13,7 +13,6 @@ from zope.sqlalchemy import mark_changed
 from sqlalchemy import insert
 from sqlalchemy.sql.expression import literal
 from sqlalchemy.orm import contains_eager
-from sqlalchemy.orm import joinedload
 from yoshimi.entities import TrashContent
 from yoshimi.content import (
     Content,

@@ -1,4 +1,3 @@
-from pyramid.view import view_config
 from yoshimi import views
 from yoshimi.utils import (
     cache_func,
