@@ -3,9 +3,15 @@ from tests.yoshimi import (
     patch
 )
 from yoshimi.admin.views import (
+    index,
     trash_empty,
     trash_index,
 )
+
+
+class TestIndex:
+    def test_index(self):
+        assert index(Mock(), Mock()) == {}
 
 
 class TestTrashIndex:
