@@ -15,7 +15,7 @@ class TestTrashIndex:
         )
         self.lazy_pagination = LazyPagination.start()
 
-        page_number = patch('yoshimi.admin.views.page_number')
+        page_number = patch('yoshimi.admin.views.page_number', autospec=True)
         self.page_number = page_number.start()
 
     def teardown(self):
