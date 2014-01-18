@@ -24,7 +24,7 @@ from yoshimi.services import Trash
 
 
 class Repo(Proxy):
-    """Content repository to for interacting with the CMS content.
+    """Content repository for interacting with the CMS content.
 
         Normally you wouldn't instantiate this class directly but rather use it
         through the request object like so::
