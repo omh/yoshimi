@@ -24,7 +24,6 @@ class TestTrash(DatabaseTestCase):
         self.c3 = get_content(parent=self.c2)
         self.s.add(self.root)
         self.s.flush()
-
         self.trash = Trash(self.s)
         self.trash_count = self._trash_count()
 
@@ -49,6 +48,14 @@ class TestTrash(DatabaseTestCase):
         assert self.c1.is_trashed is True
         assert self.c2.is_trashed is True
         assert self.c3.is_trashed is True
+
+    def test_count(self):
+        self.trash.insert(self.c3)
+        assert self.trash.count() == 1
+
+    def test_items(self):
+        self.trash.insert(self.c2)
+        assert len(self.trash.items().all()) == 2
 
     def test_empty(self):
         self.trash.insert(self.c3)

@@ -12,7 +12,7 @@ from datetime import datetime
 from zope.sqlalchemy import mark_changed
 from sqlalchemy import insert
 from sqlalchemy.sql.expression import literal
-
+from sqlalchemy.orm import contains_eager
 from yoshimi.entities import TrashContent
 from yoshimi.content import (
     Content,
@@ -93,6 +93,40 @@ class Trash:
         mark_changed(self._session)
         self._session.expire_all()
 
+    def count(self):
+        """ Returns the number of entries in the trash
+
+        Only items marked as "trashed" will be counted. Anything pending
+        deletion will not be counted.
+
+        :return int: Number of items in the trash
+        """
+        return self._session.query(TrashContent).join(
+            Content
+        ).filter_by(
+            status_id=Content.status.TRASHED
+        ).count()
+
+    def items(self):
+        """ Returns query that fetches items in the Trash
+
+        The items returned by the query will be
+        :class:`~yoshimi.entities.TrashContent`. To get the
+        :class:`~yoshimi.content.Content` use the `.content` property.
+
+        :rtype: :class:`~sqlalchemy.orm.query.Query`
+        """
+        return self._session.query(TrashContent).join(
+            Content
+        ).filter(
+            Content.status_id == Content.status.TRASHED
+        ).order_by(
+            TrashContent.created_at.desc()
+        ).options(
+            contains_eager(TrashContent.content)
+            .joinedload(Content.paths, innerjoin=True),
+        )
+
     def empty(self):
         """ Empties the trash
 
@@ -135,7 +169,7 @@ class Trash:
 
         Note that this method will expire all objects in the current session.
 
-        :param target: Content type to insert into the trash
+        :param target: Content type to restore from the trash
         :type target: :class:`~yoshimi.content.ContentType`
         :param bool with_children: Whether to include children
         """

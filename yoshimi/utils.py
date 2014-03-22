@@ -7,11 +7,28 @@
     :copyright: (c) 2013 by Ole Morten Halvorsen
     :license: BSD, see LICENSE for more details.
 """
+import functools
 
 
 def page_number(n):
     """Ensures a number is minimum 1, always positive and an integer"""
     return max(int(n), 1)
+
+
+def cache_func(func):
+    """ Caches the output of `func`
+
+    A useful scenario for this function is when you want to provide a function
+    to a template that returns some expensive result (e.g a SQL query) and
+    allow the user to call the function many times.
+
+    Internally this function simply wraps the provided function in Python's
+    :func:`~functools.lru_cache`.
+
+    :param function func: Function to cache return value of.
+    :return function: Decorated version of `func`
+    """
+    return functools.lru_cache(maxsize=1)(func)
 
 
 class LazyPagination:

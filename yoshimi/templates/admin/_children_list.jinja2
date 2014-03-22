@@ -15,7 +15,7 @@
                             id="inlineCheckbox1"
                             value="option1">
                     </td>
-                    <td><a href="{{ child|y_path }}">{{ child.name }}</td>
+                    <td><a href="{{ child|y_path }}">{{ child.name }}</a></td>
                     <td class="tight">03/01/2013 12:12</td>
                     <td class="tight">Ole Morten Halvorsen</td>
                     <td class="tight table-admin-right">
@@ -27,7 +27,10 @@
             {% endfor %}
         </tbody>
     </table>
-    {% include 'admin/_paginator.jinja2' %}
+    {% import 'admin/_paginator.jinja2' as paginator %}
+    {% call(page) paginator.paginate(children) %}
+        {{ context|y_path(query={'page': page}) }}
+    {% endcall %}
 {% else %}
     <p class="muted">No sub items</p>
 {% endif %}
