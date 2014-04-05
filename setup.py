@@ -76,7 +76,6 @@ setup(
         'testing': tests_requires,
         'docs': docs_extras,
     },
-    dependency_links=dependency_links,
     entry_points={
         'fanstatic.libraries': [
             'yoshimi_admin = yoshimi.admin.fanstatic:library',
