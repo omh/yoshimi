@@ -33,7 +33,7 @@ requires = [
     'pyramid>=1.5a3',
     'pyramid_jinja2',
     'pyramid_tm',
-    'sqlalchemy>=0.9.0',
+    'sqlalchemy>=0.9.4',
     'wtforms',
     'zope.sqlalchemy',
 ]
