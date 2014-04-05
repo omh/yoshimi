@@ -26,7 +26,7 @@ with open(os.path.join(here, 'CHANGES.md')) as fp:
     CHANGES = fp.read()
 
 requires = [
-    'fanstatic>=1.0a4',
+    'fanstatic>=1.0a5',
     'js.jquery',
     'css.pure',
     'passlib',
@@ -49,11 +49,6 @@ tests_requires = [
 
 docs_extras = [
     'Sphinx',
-]
-
-dependency_links = [
-    # for which==1.1.3py3 - needed by fanstatic
-    "https://bitbucket.org/fanstatic/fanstatic/src/default/3rdparty/which/",
 ]
 
 setup(
