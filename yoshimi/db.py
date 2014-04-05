@@ -159,7 +159,7 @@ def setup_db(settings, extension=ZopeTransactionExtension):
     engine = engine_from_config(settings, 'sqlalchemy.')
 
     session_options = {'query_cls': BaseQuery}
-    if not extension is None:
+    if extension is not None:
         session_options['extension'] = extension()
     global Session
     Session = scoped_session(sessionmaker(**session_options))

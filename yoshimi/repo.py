@@ -187,10 +187,10 @@ class Query(Proxy):
         return self.session.query(self._entities)
 
     def _pre_checks(self):
-        if 'children' in self._destructive_op and not 'depth' in self._ops:
+        if 'children' in self._destructive_op and 'depth' not in self._ops:
             self.depth(1)
 
-        if not 'status' in self._ops:
+        if 'status' not in self._ops:
             self.status(Content.status.AVAILABLE)
 
     def _add_op(self, op_name, op_func):

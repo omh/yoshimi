@@ -108,12 +108,12 @@ class TestQueryChildren(DatabaseTestCase):
     def setup(self):
         super().setup()
         # - root
-            # - - article 1
-            # - - article 2
-            # - - folder 1
-                # - - article 3
-            # - - folder 2
-                # - - article 4
+        # - - article 1
+        # - - article 2
+        # - - folder 1
+        # - - - article 3
+        # - folder 2
+        # - - article 4
         self.root = get_folder(name='root')
         self.a1 = get_article(parent=self.root, name='a1', title='a1 title')
         self.a2 = get_article(parent=self.root, name='a2')

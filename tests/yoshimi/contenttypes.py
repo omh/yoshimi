@@ -13,26 +13,26 @@ class Folder(ContentType, Content):
 def get_content(*args, **kwargs):
     """Returns a location with all required fields filled in"""
     c = Content(*args, **kwargs)
-    if not 'name' in kwargs:
+    if 'name' not in kwargs:
         c.name = "This is test content"
-    if not 'slug' in kwargs:
+    if 'slug' not in kwargs:
         c.slug = "this-is-a-slug"
 
     return c
 
 
 def get_article(*args, **kwargs):
-    if not 'name' in kwargs:
+    if 'name' not in kwargs:
         kwargs['name'] = 'test folder'
-    if not 'slug' in kwargs:
+    if 'slug' not in kwargs:
         kwargs['slug'] = 'test-article'
 
     return Article(*args, **kwargs)
 
 
 def get_folder(*args, **kwargs):
-    if not 'name' in kwargs:
+    if 'name' not in kwargs:
         kwargs['name'] = 'test folder'
-    if not 'slug' in kwargs:
+    if 'slug' not in kwargs:
         kwargs['slug'] = 'test-folder'
     return Folder(*args, **kwargs)
