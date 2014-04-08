@@ -56,12 +56,12 @@ class TestProxy:
         return Cut()
 
 
-class TestCacheFunc:
+class TestRunOnce:
     def test_func_only_called_once(self):
-        from yoshimi.utils import cache_func
+        from yoshimi.utils import run_once
         func = Mock()
         func.return_value = 'string'
-        new_func = cache_func(func)
+        new_func = run_once(func)
         rv = new_func()
         rv2 = new_func()
 

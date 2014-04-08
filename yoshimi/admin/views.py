@@ -1,6 +1,6 @@
 from yoshimi import views
 from yoshimi.utils import (
-    cache_func,
+    run_once,
     page_number,
     LazyPagination,
 )
@@ -9,7 +9,7 @@ from yoshimi.url import redirect_back
 
 def _trash_count(_, request):
     return {
-        'trash_count': cache_func(request.y_repo.trash.count)
+        'trash_count': run_once(request.y_repo.trash.count)
     }
 
 layout = (_trash_count,)

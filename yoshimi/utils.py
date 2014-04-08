@@ -15,7 +15,7 @@ def page_number(n):
     return max(int(n), 1)
 
 
-def cache_func(func):
+def run_once(func):
     """ Caches the output of `func`
 
     A useful scenario for this function is when you want to provide a function
