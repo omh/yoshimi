@@ -143,10 +143,12 @@ def logout(request):
     return redirect_back(request, headers=logged_out)
 
 
-def wrap_view(*view_callables_to_wrap):
-    """ Decorator that will wrap a view callable with other view callables and
-    merge the return values. This comes in handy as it allows you to compose
-    a view from many smaller views.
+def merge(*view_callables_to_wrap):
+    """ Decorater that merges the return value of the decorated function with
+    a list of other functions.
+
+    This comes in handy as it allows you to compose a view from many smaller
+    views.
 
     A simplified example::
 
@@ -156,12 +158,12 @@ def wrap_view(*view_callables_to_wrap):
         def view2(context, request):
             return {'view1': 1}
 
-        @wrap_view(view1, view2)
+        @merge(view1, view2)
         def view3(context, request):
             return {'view3': 2}
 
         The return value of view3 when called will be the result of merging all
-        the view's return value::
+        the views return value::
 
             {'view1': 1, 'view2': 2, 'view3': 3}
 

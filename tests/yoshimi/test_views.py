@@ -100,7 +100,7 @@ class TestLogoutView:
 
 class TestWrapView:
     def setup(self):
-        from yoshimi.views import wrap_view
+        from yoshimi.views import merge
 
         def view1():
             return {'view1': 1}
@@ -108,7 +108,7 @@ class TestWrapView:
         def view2():
             return {'view2': 1}
 
-        @wrap_view(view1, view2)
+        @merge(view1, view2)
         def view3():
             return {'view3': 1}
 

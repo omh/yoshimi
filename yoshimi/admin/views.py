@@ -15,12 +15,12 @@ def _trash_count(_, request):
 layout = (_trash_count,)
 
 
-@views.wrap_view(views.index, *layout)
+@views.merge(views.index, *layout)
 def index(context, request):
     return {}
 
 
-@views.wrap_view(*layout)
+@views.merge(*layout)
 def trash_index(_, request):
     def can_select(trash_content):
         if not trash_content.content.parent:
