@@ -7,20 +7,17 @@ from yoshimi.utils import (
 from yoshimi.url import redirect_back
 
 
-def _trash_count(_, request):
-    return {
-        'trash_count': run_once(request.y_repo.trash.count)
-    }
-
-layout = (_trash_count,)
+layout_views = [
+    lambda _, req: {'trash_count': run_once(req.y_repo.trash.count)}
+]
 
 
-@views.merge(views.index, *layout)
+@views.merge(views.index, *layout_views)
 def index(context, request):
     return {}
 
 
-@views.merge(*layout)
+@views.merge(*layout_views)
 def trash_index(_, request):
     def can_select(trash_content):
         if not trash_content.content.parent:
