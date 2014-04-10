@@ -24,7 +24,7 @@ from yoshimi.content import (
     Path,
     Content,
 )
-from yoshimi.services import Trash
+from yoshimi.trash import Trash
 
 # @TODO test children query does not trigger extra query when accessing content
 # type attributes, e.g article.title

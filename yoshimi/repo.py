@@ -20,7 +20,7 @@ from yoshimi.content import Content
 from yoshimi.content import Path
 from yoshimi.interfaces import IQueryExtensions
 from yoshimi.utils import Proxy
-from yoshimi.services import Trash
+from yoshimi.trash import Trash
 
 
 class Repo(Proxy):

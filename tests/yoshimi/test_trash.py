@@ -3,7 +3,7 @@ import sqlalchemy
 from tests.yoshimi import DatabaseTestCase
 from tests.yoshimi.contenttypes import get_content
 from yoshimi.entities import TrashContent
-from yoshimi.services import Trash
+from yoshimi.trash import Trash
 
 
 class TestTrashContent:

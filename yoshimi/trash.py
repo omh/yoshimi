@@ -1,6 +1,6 @@
 """
-    yoshimi.services.trash
-    ~~~~~~~~~~~~~~~~~~~~~~
+    yoshimi.trash
+    ~~~~~~~~~~~~~
 
     Implements the concept of a Trash for content.
 
@@ -8,7 +8,6 @@
     :license: BSD, see LICENSE for more details.
 """
 from datetime import datetime
-
 from zope.sqlalchemy import mark_changed
 from sqlalchemy import insert
 from sqlalchemy.sql.expression import literal
