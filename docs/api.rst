@@ -27,7 +27,7 @@ Content Repository (repo)
 Trash
 -----
 
-.. autoclass:: yoshimi.services.Trash
+.. autoclass:: yoshimi.trash.Trash
   :members:
 
 
