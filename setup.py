@@ -30,7 +30,7 @@ requires = [
     'js.jquery',
     'css.pure',
     'passlib',
-    'pyramid>=1.5b1',
+    'pyramid>=1.5',
     'pyramid_jinja2',
     'pyramid_tm',
     'sqlalchemy>=0.9.4',
