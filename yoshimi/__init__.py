@@ -3,6 +3,7 @@ import pyramid_jinja2
 import pyramid_jinja2.filters
 from yoshimi import auth
 from yoshimi.db import get_db
+from yoshimi.content import Content
 from yoshimi.config import add_query_directive
 from yoshimi.repo import Repo
 from yoshimi.repo import content_getter
@@ -26,7 +27,7 @@ def includeme(config):
     setup_template(config)
 
     config.add_directive('add_query_directive', add_query_directive)
-    config.add_resource_url_adapter(ResourceUrlAdapter)
+    config.add_resource_url_adapter(ResourceUrlAdapter, resource_iface=Content)
     config.set_root_factory(RootFactory(
         partial(content_getter, Repo(config.registry, get_db()))
     ))
