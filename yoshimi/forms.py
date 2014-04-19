@@ -90,9 +90,9 @@ class ConflictPreventionForm(CsrfForm):
     def validate_cp_token(form, cp_token):
         if not form._cp_hash == cp_token.data:
             raise ValidationError(
-               "Could not save as the content has become outdated. " \
-               "The content has changed since this page was " \
-               "initially loaded."
+                "Could not save as the content has become outdated. "
+                "The content has changed since this page was "
+                "initially loaded."
             )
 
     def _object_hash(self, obj):

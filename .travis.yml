@@ -20,7 +20,7 @@ before_script:
       - psql -c 'CREATE DATABASE yoshimi_test;' -U postgres
 
 script:
-    - flake8 --ignore=E501,E231,E121,E502,E251 yoshimi tests
+    - flake8 yoshimi tests
     - if [[ $DB == sqlite ]]; then python setup.py test; fi
     - if [[ $DB == mysql ]]; then python setup.py test -m all_databases; fi
     - if [[ $DB == postgres ]]; then python setup.py test -m all_databases; fi
